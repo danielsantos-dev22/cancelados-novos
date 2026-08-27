@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InforwNet Telecom · Detalhes do Cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell"></div>
+
+<template id="tpl-detalhes">
+  <div class="page-head">
+    <div>
+      <h1>Detalhes do Cliente</h1>
+      <p class="sub">Informações completas, equipamentos e histórico de alterações.</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="clientes.html" class="btn btn-ghost">Voltar</a>
+      <a href="#" id="btnEditar" class="btn btn-primary">Editar</a>
+    </div>
+  </div>
+
+  <div id="detalhesContent"><div class="page-loader"><div class="spinner dark"></div></div></div>
+</template>
+
+<template id="tpl-detalhes-conteudo">
+  <div class="detail-grid">
+    <div style="display:flex;flex-direction:column;gap:18px;">
+      <div class="panel">
+        <div class="panel-head"><h3>Informações</h3><span data-status-badge></span></div>
+        <div class="detail-list">
+          <div class="detail-row"><span class="k">Nome</span><span class="v" data-nome></span></div>
+          <div class="detail-row"><span class="k">CPF</span><span class="v" data-cpf></span></div>
+          <div class="detail-row"><span class="k">Data do cancelamento</span><span class="v" data-cancelamento></span></div>
+          <div class="detail-row"><span class="k">SPC/SERASA</span><span class="v" data-spc></span></div>
+          <div class="detail-row hidden" data-linha-spc-data><span class="k">Data da inclusão</span><span class="v" data-spc-data></span></div>
+          <div class="detail-row hidden" data-linha-spc-obs><span class="k">Observação (SPC)</span><span class="v" data-spc-obs></span></div>
+          <div class="detail-row"><span class="k">Devolução</span><span class="v" data-devolucao></span></div>
+          <div class="detail-row hidden" data-linha-dev-data><span class="k">Data da devolução</span><span class="v" data-dev-data></span></div>
+          <div class="detail-row hidden" data-linha-dev-obs><span class="k">Observação (devolução)</span><span class="v" data-dev-obs></span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Equipamentos</h3></div>
+        <div id="equipContainer"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Histórico</h3></div>
+      <div class="timeline" id="timelineContainer"></div>
+    </div>
+  </div>
+
+  <div class="form-actions" style="border:none;justify-content:flex-start;margin-top:22px;">
+    <button type="button" class="btn btn-danger" id="btnExcluirCliente">Excluir cliente</button>
+  </div>
+</template>
+
+<script type="module" src="js/cliente-detalhes.js"></script>
+</body>
+</html>

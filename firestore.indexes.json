@@ -1,0 +1,10 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "historico",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [{ "fieldPath": "data", "order": "DESCENDING" }]
+    }
+  ],
+  "fieldOverrides": []
+}

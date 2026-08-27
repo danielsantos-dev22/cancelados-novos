@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InforwNet Telecom · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell"></div>
+
+<template id="tpl-dashboard">
+  <div class="page-head">
+    <div>
+      <h1>Visão geral</h1>
+      <p class="sub">Acompanhe em tempo real os clientes com contrato cancelado.</p>
+    </div>
+    <a href="cliente-form.html" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+      Novo Cliente
+    </a>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card tone-blue">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-label">Total de Cancelados</div>
+    </div>
+    <div class="stat-card tone-amber">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="12" rx="2"/><path d="M6 11v2M10 11v2M14 11v2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </div>
+      <div class="stat-value" id="statPendentes">—</div>
+      <div class="stat-label">Equipamentos Pendentes</div>
+    </div>
+    <div class="stat-card tone-red">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+      </div>
+      <div class="stat-value" id="statSpc">—</div>
+      <div class="stat-label">SPC/SERASA</div>
+    </div>
+    <div class="stat-card tone-green">
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+      </div>
+      <div class="stat-value" id="statDevolvidos">—</div>
+      <div class="stat-label">Equipamentos Devolvidos</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Clientes cancelados recentemente</h3>
+        <a href="clientes.html">Ver todos</a>
+      </div>
+      <div id="recentClientes"><div class="page-loader"><div class="spinner dark"></div></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Atividade recente</h3>
+        <a href="historico.html">Ver histórico</a>
+      </div>
+      <div id="recentHistorico"><div class="page-loader"><div class="spinner dark"></div></div></div>
+    </div>
+  </div>
+</template>
+
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

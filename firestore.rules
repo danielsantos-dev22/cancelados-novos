@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// ============================================================================
+// Regras de segurança — InforwNet Telecom · Controle de Clientes Cancelados
+//
+// Princípio: somente usuários autenticados (Firebase Authentication) podem
+// ler ou escrever qualquer dado. Usuários não autenticados não têm acesso
+// a nenhuma coleção ou subcoleção do sistema.
+//
+// Como aplicar:
+//   1. Console Firebase > Firestore Database > Regras
+//   2. Cole o conteúdo deste arquivo e publique
+//   (ou, com a Firebase CLI: firebase deploy --only firestore:rules)
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /clientes_cancelados/{clienteId} {
+      allow read, create, update, delete: if request.auth != null;
+
+      match /equipamentos/{equipamentoId} {
+        allow read, create, update, delete: if request.auth != null;
+      }
+
+      match /historico/{historicoId} {
+        // Histórico é um registro de auditoria: pode ser lido e criado por
+        // usuários autenticados, mas nunca alterado ou apagado.
+        allow read, create: if request.auth != null;
+        allow update, delete: if false;
+      }
+    }
+
+    // Qualquer outro caminho não previsto fica bloqueado por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

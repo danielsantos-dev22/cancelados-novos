@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InforwNet Telecom · Entrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="auth-shell">
+  <section class="auth-visual">
+    <div class="brand-mark">
+      <div class="logo-dot">IN</div>
+      <span>InforwNet Telecom</span>
+    </div>
+
+    <div class="auth-visual-copy">
+      <span class="eyebrow">Controle interno</span>
+      <h1>Controle de Clientes Cancelados</h1>
+      <p>Acompanhe cancelamentos, situação no SPC/SERASA e devolução de equipamentos em um só lugar, com histórico completo de cada alteração.</p>
+    </div>
+
+    <div class="auth-visual-stats">
+      <div><strong>100%</strong><span>Rastreável</span></div>
+      <div><strong>24/7</strong><span>Acesso ao painel</span></div>
+      <div><strong>Firebase</strong><span>Dados seguros</span></div>
+    </div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <h2>Acessar o sistema</h2>
+      <span class="auth-sub">Entre com seu e-mail corporativo InforwNet.</span>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" autocomplete="username" placeholder="voce@inforwnet.com.br" required />
+          <span class="field-error" id="errLoginEmail">Informe um e-mail válido.</span>
+        </div>
+
+        <div class="field">
+          <label for="loginSenha">Senha</label>
+          <div class="input-wrap">
+            <input type="password" id="loginSenha" autocomplete="current-password" placeholder="••••••••" required />
+            <button type="button" class="pw-toggle" data-toggle="loginSenha" aria-label="Mostrar senha">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <span class="field-error" id="errLoginSenha">Informe sua senha.</span>
+        </div>
+
+        <div class="auth-links" style="margin-bottom: 22px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-gray-700);">
+            <input type="checkbox" id="lembrar" style="width:auto;" /> Lembrar de mim
+          </label>
+          <a href="#" id="linkEsqueci">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btnEntrar">
+          <span id="btnEntrarLabel">Entrar</span>
+        </button>
+      </form>
+
+      <div class="auth-divider">ou</div>
+      <a href="cadastro.html" class="btn btn-outline btn-block">Criar conta</a>
+
+      <p class="auth-foot">Ainda não tem acesso? <a href="cadastro.html">Criar nova conta</a></p>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import { auth } from "./js/firebase-config.js";
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { showToast, traduzErroFirebase } from "./js/utils.js";
+
+// Se já estiver logado, vai direto ao dashboard.
+onAuthStateChanged(auth, (user) => {
+  if (user) window.location.href = "dashboard.html";
+});
+
+// Alternar visibilidade da senha
+document.querySelectorAll(".pw-toggle").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const input = document.getElementById(btn.dataset.toggle);
+    input.type = input.type === "password" ? "text" : "password";
+  });
+});
+
+const form = document.getElementById("loginForm");
+const emailInput = document.getElementById("loginEmail");
+const senhaInput = document.getElementById("loginSenha");
+const btn = document.getElementById("btnEntrar");
+const btnLabel = document.getElementById("btnEntrarLabel");
+
+function setFieldError(input, errId, show) {
+  document.getElementById(errId).classList.toggle("show", show);
+  input.classList.toggle("invalid", show);
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = emailInput.value.trim();
+  const senha = senhaInput.value;
+
+  let valid = true;
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  setFieldError(emailInput, "errLoginEmail", !emailOk);
+  if (!emailOk) valid = false;
+  setFieldError(senhaInput, "errLoginSenha", senha.length === 0);
+  if (senha.length === 0) valid = false;
+  if (!valid) return;
+
+  btn.disabled = true;
+  btnLabel.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    showToast(traduzErroFirebase(err.code), "error");
+    btn.disabled = false;
+    btnLabel.textContent = "Entrar";
+  }
+});
+
+document.getElementById("linkEsqueci").addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = prompt("Informe o e-mail da sua conta para receber o link de redefinição de senha:", emailInput.value.trim());
+  if (!email) return;
+  try {
+    await sendPasswordResetEmail(auth, email.trim());
+    showToast("Enviamos um link de redefinição de senha para o seu e-mail.", "success");
+  } catch (err) {
+    showToast(traduzErroFirebase(err.code), "error");
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InforwNet Telecom · Cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell"></div>
+
+<template id="tpl-form">
+  <div class="page-head">
+    <div>
+      <h1 id="formTitle">Novo Cliente</h1>
+      <p class="sub" id="formSub">Preencha os dados do cliente com contrato cancelado.</p>
+    </div>
+    <a href="clientes.html" class="btn btn-ghost">Voltar</a>
+  </div>
+
+  <form id="clienteForm" novalidate>
+    <div class="panel form-section">
+      <div class="form-section-title">
+        <div class="num">1</div>
+        <h3>Dados do cliente</h3>
+      </div>
+      <div class="form-grid">
+        <div class="field full">
+          <label for="fNome">Nome completo</label>
+          <input type="text" id="fNome" required placeholder="Nome completo do cliente" />
+          <span class="field-error" id="errNome">Informe o nome completo.</span>
+        </div>
+        <div class="field">
+          <label for="fCpf">CPF</label>
+          <input type="text" id="fCpf" required placeholder="000.000.000-00" inputmode="numeric" maxlength="14" />
+          <span class="field-error" id="errCpf">Informe um CPF válido.</span>
+        </div>
+        <div class="field">
+          <label for="fDataCancelamento">Data do cancelamento</label>
+          <input type="date" id="fDataCancelamento" required />
+          <span class="field-error" id="errData">Informe a data do cancelamento.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel form-section">
+      <div class="form-section-title">
+        <div class="num">2</div>
+        <h3>SPC/SERASA</h3>
+      </div>
+      <p style="font-size:13.5px;color:var(--color-gray-700);margin-bottom:10px;">Cliente foi inserido no SPC/SERASA?</p>
+      <div class="radio-group" id="spcGroup">
+        <label class="radio-pill" data-value="nao"><input type="radio" name="spc" value="nao" checked /> Não</label>
+        <label class="radio-pill" data-value="sim"><input type="radio" name="spc" value="sim" /> Sim</label>
+      </div>
+      <div class="conditional-block hidden" id="spcCondicional">
+        <div class="field">
+          <label for="fDataSpc">Data da inclusão</label>
+          <input type="date" id="fDataSpc" />
+        </div>
+        <div class="field full">
+          <label for="fObsSpc">Observação</label>
+          <textarea id="fObsSpc" rows="2" placeholder="Observações sobre a inclusão no SPC/SERASA"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel form-section">
+      <div class="form-section-title">
+        <div class="num">3</div>
+        <h3>Devolução de equipamentos</h3>
+      </div>
+      <p style="font-size:13.5px;color:var(--color-gray-700);margin-bottom:10px;">Equipamento foi devolvido?</p>
+      <div class="radio-group" id="devolucaoGroup">
+        <label class="radio-pill" data-value="nao"><input type="radio" name="devolucao" value="nao" checked /> Não</label>
+        <label class="radio-pill" data-value="parcial"><input type="radio" name="devolucao" value="parcial" /> Parcialmente</label>
+        <label class="radio-pill" data-value="sim"><input type="radio" name="devolucao" value="sim" /> Sim</label>
+      </div>
+      <div class="conditional-block hidden" id="devolucaoCondicional">
+        <div class="field">
+          <label for="fDataDevolucao">Data da devolução</label>
+          <input type="date" id="fDataDevolucao" />
+        </div>
+        <div class="field full">
+          <label for="fObsDevolucao">Observação</label>
+          <textarea id="fObsDevolucao" rows="2" placeholder="Observações sobre a devolução"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel form-section">
+      <div class="form-section-title">
+        <div class="num">4</div>
+        <h3>Equipamentos</h3>
+      </div>
+      <div class="equip-list" id="equipList"></div>
+      <button type="button" class="btn btn-outline btn-sm" id="btnAddEquip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Adicionar equipamento
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <a href="clientes.html" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary" id="btnSalvar">
+        <span id="btnSalvarLabel">Salvar cliente</span>
+      </button>
+    </div>
+  </form>
+</template>
+
+<template id="tpl-equip-item">
+  <div class="equip-item" data-equip-item>
+    <div class="equip-item-head">
+      <strong data-equip-title>Equipamento</strong>
+      <button type="button" class="remove-equip" data-remove-equip title="Remover equipamento">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+      </button>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Tipo</label>
+        <select data-f="tipo">
+          <option value="ONU/ONT">ONU/ONT</option>
+          <option value="Roteador">Roteador</option>
+          <option value="Fonte">Fonte</option>
+          <option value="Conversor">Conversor</option>
+          <option value="Access Point">Access Point</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Marca</label>
+        <input type="text" data-f="marca" placeholder="Ex.: TP-Link" />
+      </div>
+      <div class="field">
+        <label>Modelo</label>
+        <input type="text" data-f="modelo" placeholder="Ex.: XC220-G3" />
+      </div>
+      <div class="field">
+        <label>Número de série</label>
+        <input type="text" data-f="numeroSerie" placeholder="S/N" />
+      </div>
+      <div class="field">
+        <label>MAC Address</label>
+        <input type="text" data-f="macAddress" placeholder="XX:XX:XX:XX:XX:XX" />
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select data-f="status">
+          <option value="Pendente">Pendente</option>
+          <option value="Devolvido">Devolvido</option>
+          <option value="Danificado">Danificado</option>
+          <option value="Extraviado">Extraviado</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>Observação</label>
+        <input type="text" data-f="observacao" placeholder="Observações sobre o equipamento" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="module" src="js/cliente-form.js"></script>
+</body>
+</html>

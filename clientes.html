@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InforwNet Telecom · Clientes Cancelados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-shell" id="app-shell"></div>
+
+<template id="tpl-clientes">
+  <div class="page-head">
+    <div>
+      <h1>Clientes Cancelados</h1>
+      <p class="sub">Consulte, pesquise e filtre todos os clientes com contrato cancelado.</p>
+    </div>
+    <a href="cliente-form.html" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+      Novo Cliente
+    </a>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Pesquisar por nome ou CPF" />
+    </div>
+    <div class="filter-chips" id="filterChips">
+      <button class="chip" data-filtro="todos">Todos</button>
+      <button class="chip" data-filtro="recentes">Cancelados recentemente</button>
+      <button class="chip" data-filtro="spc">SPC/SERASA</button>
+      <button class="chip" data-filtro="sem-spc">Sem SPC/SERASA</button>
+      <button class="chip" data-filtro="equipamento-devolvido">Equipamento devolvido</button>
+      <button class="chip" data-filtro="equipamento-pendente">Equipamento pendente</button>
+      <button class="chip" data-filtro="parcial">Devolução parcial</button>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden;">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>CPF</th>
+            <th>Cancelamento</th>
+            <th>SPC/SERASA</th>
+            <th>Equipamento</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7"><div class="page-loader"><div class="spinner dark"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-list" id="cardList" style="padding:14px;"></div>
+  </div>
+</template>
+
+<script type="module" src="js/clientes.js"></script>
+</body>
+</html>
