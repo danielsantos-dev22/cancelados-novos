@@ -7,33 +7,20 @@
 // Os valores atuais são apenas placeholders de exemplo.
 // ============================================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import {
-  getAuth,
-  setPersistence,
-  browserLocalPersistence,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-import {
-  getFirestore,
-  initializeFirestore,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJETO.firebaseapp.com",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_PROJECT_ID.appspot.com",
-  messagingSenderId: "SEU_SENDER_ID",
-  appId: "SEU_APP_ID",
+  apiKey: "AIzaSyAAE6P-sZ5TwkvZMv5qRp3yvemvxfvXpH4",
+  authDomain: "clientes-cancelados-inforwnet.firebaseapp.com",
+  projectId: "clientes-cancelados-inforwnet",
+  storageBucket: "clientes-cancelados-inforwnet.firebasestorage.app",
+  messagingSenderId: "1062572730215",
+  appId: "1:1062572730215:web:35678f04acc353caa6b1c2"
 };
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-
-// Mantém o usuário conectado entre sessões do navegador.
-setPersistence(auth, browserLocalPersistence).catch((err) => {
-  console.warn("Não foi possível definir a persistência de autenticação:", err);
-});
-
-export const NOME_EMPRESA = "InforwNet Telecom";
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
