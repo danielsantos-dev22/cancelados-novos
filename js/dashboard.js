@@ -3,7 +3,7 @@
 // ============================================================================
 import { db } from "./firebase-config.js";
 import { mountShell, requireAuth } from "./app-shell.js";
-import { formatDateBR, formatDateTimeBR, escapeHtml } from "./utils.js";
+import { formatDateBR, formatDateTimeBR, calcularStatusPromessa, escapeHtml, showToast } from "./utils.js";
 import {
   collection,
   query,
@@ -48,6 +48,11 @@ function initDashboard() {
       document.getElementById("statPendentes").textContent = pendentes;
       document.getElementById("statDevolvidos").textContent = devolvidos;
 
+      const hojeList = docs.filter((c) => calcularStatusPromessa(c)?.hoje);
+      const atrasadasList = docs.filter((c) => calcularStatusPromessa(c)?.vencida);
+      document.getElementById("statPromessas").textContent = hojeList.length + atrasadasList.length;
+      avisarPromessasPendentes(hojeList, atrasadasList);
+
       docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       renderRecentClientes(docs.slice(0, 6));
     },
@@ -89,6 +94,25 @@ function initDashboard() {
         '<p style="color:var(--color-gray-500);font-size:13.5px;">Nenhuma atividade disponível.</p>';
     }
   );
+}
+
+let AVISO_PROMESSAS_MOSTRADO = false;
+
+function avisarPromessasPendentes(hojeList, atrasadasList) {
+  if (AVISO_PROMESSAS_MOSTRADO) return;
+  if (hojeList.length === 0 && atrasadasList.length === 0) return;
+  AVISO_PROMESSAS_MOSTRADO = true;
+
+  if (hojeList.length > 0) {
+    const nomes = hojeList.map((c) => c.nome).slice(0, 3).join(", ");
+    const resto = hojeList.length > 3 ? ` e mais ${hojeList.length - 3}` : "";
+    showToast(`Promessa de pagamento vence hoje: ${nomes}${resto}.`, "info", 8000);
+  }
+  if (atrasadasList.length > 0) {
+    const nomes = atrasadasList.map((c) => c.nome).slice(0, 3).join(", ");
+    const resto = atrasadasList.length > 3 ? ` e mais ${atrasadasList.length - 3}` : "";
+    showToast(`Promessa de pagamento atrasada: ${nomes}${resto}.`, "error", 8000);
+  }
 }
 
 function renderRecentClientes(docs) {
