@@ -38,9 +38,14 @@
           <span class="field-error" id="errCpf">Informe um CPF válido.</span>
         </div>
         <div class="field">
-          <label for="fTelefone">Telefone</label>
-          <input type="text" id="fTelefone" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" />
-          <span class="field-error" id="errTelefone">Informe um telefone válido.</span>
+          <label for="fTelefone1">Telefone 1</label>
+          <input type="text" id="fTelefone1" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" />
+          <span class="field-error" id="errTelefone1">Informe um telefone válido.</span>
+        </div>
+        <div class="field">
+          <label for="fTelefone2">Telefone 2 <span style="color:var(--color-gray-500);font-weight:400;">(opcional)</span></label>
+          <input type="text" id="fTelefone2" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" />
+          <span class="field-error" id="errTelefone2">Informe um telefone válido.</span>
         </div>
         <div class="field">
           <label for="fDataCancelamento">Data do cancelamento</label>
@@ -103,6 +108,34 @@
     <div class="panel form-section">
       <div class="form-section-title">
         <div class="num">4</div>
+        <h3>Promessa de pagamento</h3>
+      </div>
+      <p style="font-size:13.5px;color:var(--color-gray-700);margin-bottom:10px;">Cliente fez promessa de pagamento?</p>
+      <div class="radio-group" id="promessaGroup">
+        <label class="radio-pill" data-value="nao"><input type="radio" name="promessa" value="nao" checked /> Não</label>
+        <label class="radio-pill" data-value="sim"><input type="radio" name="promessa" value="sim" /> Sim</label>
+      </div>
+      <div class="conditional-block hidden" id="promessaCondicional">
+        <div class="field">
+          <label for="fDataPromessa">Data prometida</label>
+          <input type="date" id="fDataPromessa" />
+          <span class="field-error" id="errDataPromessa">Informe a data prometida.</span>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:8px;margin-top:26px;">
+            <input type="checkbox" id="fPagamentoRecebido" style="width:auto;" /> Pagamento já recebido
+          </label>
+        </div>
+        <div class="field full">
+          <label for="fObsPromessa">Observação</label>
+          <textarea id="fObsPromessa" rows="2" placeholder="Observações sobre a promessa de pagamento"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel form-section">
+      <div class="form-section-title">
+        <div class="num">5</div>
         <h3>Equipamentos</h3>
       </div>
       <div class="equip-list" id="equipList"></div>
