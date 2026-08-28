@@ -9,6 +9,7 @@ import {
   attachTelefoneMask,
   attachMoedaMask,
   moedaParaNumero,
+  isoToBR,
   showToast,
   registrarHistorico,
 } from "./utils.js";
@@ -54,11 +55,13 @@ requireAuth((user) => {
 
 function wireStaticUI() {
   attachCPFMask(document.getElementById("fCpf"));
-  attachTelefoneMask(document.getElementById("fTelefone"));
+  attachTelefoneMask(document.getElementById("fTelefone1"));
+  attachTelefoneMask(document.getElementById("fTelefone2"));
   attachMoedaMask(document.getElementById("fValor"));
 
   wireRadioGroup("spcGroup", "spc", "spcCondicional");
   wireRadioGroup("devolucaoGroup", "devolucao", "devolucaoCondicional");
+  wireRadioGroup("promessaGroup", "promessa", "promessaCondicional");
 
   document.getElementById("btnAddEquip").addEventListener("click", () => adicionarEquipamento());
 }
@@ -145,7 +148,8 @@ async function carregarCliente(id) {
 
     document.getElementById("fNome").value = c.nome || "";
     document.getElementById("fCpf").value = c.cpf || "";
-    document.getElementById("fTelefone").value = c.telefone || "";
+    document.getElementById("fTelefone1").value = c.telefone1 || c.telefone || "";
+    document.getElementById("fTelefone2").value = c.telefone2 || "";
     document.getElementById("fDataCancelamento").value = toDateInputValue(c.dataCancelamento);
     document.getElementById("fValor").value =
       c.valor !== undefined && c.valor !== null
@@ -162,8 +166,15 @@ async function carregarCliente(id) {
     document.getElementById("fDataDevolucao").value = toDateInputValue(c.dataDevolucao);
     document.getElementById("fObsDevolucao").value = c.observacaoDevolucao || "";
 
+    const promessaValue = c.prometeuPagamento ? "sim" : "nao";
+    document.querySelector(`input[name="promessa"][value="${promessaValue}"]`).checked = true;
+    document.getElementById("fDataPromessa").value = toDateInputValue(c.dataPromessaPagamento);
+    document.getElementById("fPagamentoRecebido").checked = Boolean(c.pagamentoRecebido);
+    document.getElementById("fObsPromessa").value = c.observacaoPromessa || "";
+
     document.getElementById("spcGroup").querySelectorAll("input").forEach((i) => i.dispatchEvent(new Event("change")));
     document.getElementById("devolucaoGroup").querySelectorAll("input").forEach((i) => i.dispatchEvent(new Event("change")));
+    document.getElementById("promessaGroup").querySelectorAll("input").forEach((i) => i.dispatchEvent(new Event("change")));
 
     const equipSnap = await getDocs(collection(db, "clientes_cancelados", id, "equipamentos"));
     document.getElementById("equipList").innerHTML = "";
@@ -211,14 +222,25 @@ function validarFormulario() {
   setFieldError("fCpf", "errCpf", !cpfOk);
   if (!cpfOk) valid = false;
 
-  const telefone = document.getElementById("fTelefone").value.trim();
-  const telefoneDigits = telefone.replace(/\D/g, "");
-  const telefoneOk = telefoneDigits.length === 0 || telefoneDigits.length >= 10;
-  setFieldError("fTelefone", "errTelefone", !telefoneOk);
-  if (!telefoneOk) valid = false;
+  const telefone1 = document.getElementById("fTelefone1").value.trim();
+  const telefone1Digits = telefone1.replace(/\D/g, "");
+  const telefone1Ok = telefone1Digits.length === 0 || telefone1Digits.length >= 10;
+  setFieldError("fTelefone1", "errTelefone1", !telefone1Ok);
+  if (!telefone1Ok) valid = false;
+
+  const telefone2 = document.getElementById("fTelefone2").value.trim();
+  const telefone2Digits = telefone2.replace(/\D/g, "");
+  const telefone2Ok = telefone2Digits.length === 0 || telefone2Digits.length >= 10;
+  setFieldError("fTelefone2", "errTelefone2", !telefone2Ok);
+  if (!telefone2Ok) valid = false;
 
   setFieldError("fDataCancelamento", "errData", !dataCancelamento);
   if (!dataCancelamento) valid = false;
+
+  const prometeu = document.querySelector('input[name="promessa"]:checked').value === "sim";
+  const dataPromessa = document.getElementById("fDataPromessa").value;
+  setFieldError("fDataPromessa", "errDataPromessa", prometeu && !dataPromessa);
+  if (prometeu && !dataPromessa) valid = false;
 
   return valid;
 }
@@ -238,11 +260,14 @@ async function handleSubmit(e) {
   const nome = document.getElementById("fNome").value.trim();
   const spcSerasa = document.querySelector('input[name="spc"]:checked').value === "sim";
   const equipamentoDevolvido = document.querySelector('input[name="devolucao"]:checked').value;
+  const prometeuPagamento = document.querySelector('input[name="promessa"]:checked').value === "sim";
+  const pagamentoRecebido = prometeuPagamento && document.getElementById("fPagamentoRecebido").checked;
 
   const payload = {
     nome,
     cpf: document.getElementById("fCpf").value.trim(),
-    telefone: document.getElementById("fTelefone").value.trim(),
+    telefone1: document.getElementById("fTelefone1").value.trim(),
+    telefone2: document.getElementById("fTelefone2").value.trim(),
     valor: moedaParaNumero(document.getElementById("fValor").value.trim()),
     dataCancelamento: document.getElementById("fDataCancelamento").value,
     spcSerasa,
@@ -251,6 +276,10 @@ async function handleSubmit(e) {
     equipamentoDevolvido,
     dataDevolucao: equipamentoDevolvido !== "nao" ? document.getElementById("fDataDevolucao").value || null : null,
     observacaoDevolucao: equipamentoDevolvido !== "nao" ? document.getElementById("fObsDevolucao").value.trim() : "",
+    prometeuPagamento,
+    dataPromessaPagamento: prometeuPagamento ? document.getElementById("fDataPromessa").value || null : null,
+    pagamentoRecebido,
+    observacaoPromessa: prometeuPagamento ? document.getElementById("fObsPromessa").value.trim() : "",
     status: equipamentoDevolvido,
     ativo: true,
     updatedAt: serverTimestamp(),
@@ -302,6 +331,14 @@ async function salvarNovo(payload) {
   if (payload.spcSerasa) {
     await registrarHistorico(ref.id, usuarioAtual, "SPC/SERASA", `Registrou a inclusão de ${payload.nome} no SPC/SERASA.`);
   }
+  if (payload.prometeuPagamento) {
+    await registrarHistorico(
+      ref.id,
+      usuarioAtual,
+      "Promessa de pagamento registrada",
+      `Registrou promessa de pagamento de ${payload.nome} para ${isoToBR(payload.dataPromessaPagamento)}.`
+    );
+  }
   return ref.id;
 }
 
@@ -329,10 +366,40 @@ async function salvarEdicao(id, payload) {
         `Alterou a devolução de equipamentos de "${rotuloDevolucao(originalCliente.equipamentoDevolvido)}" para "${rotuloDevolucao(payload.equipamentoDevolvido)}".`
       );
     }
+    if (Boolean(originalCliente.prometeuPagamento) !== payload.prometeuPagamento) {
+      await registrarHistorico(
+        id,
+        usuarioAtual,
+        "Promessa de pagamento atualizada",
+        payload.prometeuPagamento
+          ? `Registrou promessa de pagamento de ${payload.nome} para ${isoToBR(payload.dataPromessaPagamento)}.`
+          : `Removeu a promessa de pagamento de ${payload.nome}.`
+      );
+    } else if (
+      payload.prometeuPagamento &&
+      (originalCliente.dataPromessaPagamento || null) !== payload.dataPromessaPagamento
+    ) {
+      await registrarHistorico(
+        id,
+        usuarioAtual,
+        "Data da promessa atualizada",
+        `Alterou a data prometida de ${payload.nome} para ${isoToBR(payload.dataPromessaPagamento)}.`
+      );
+    } else if (payload.prometeuPagamento && Boolean(originalCliente.pagamentoRecebido) !== payload.pagamentoRecebido) {
+      await registrarHistorico(
+        id,
+        usuarioAtual,
+        "Pagamento registrado",
+        payload.pagamentoRecebido
+          ? `Marcou o pagamento de ${payload.nome} como recebido.`
+          : `Marcou o pagamento de ${payload.nome} como não recebido.`
+      );
+    }
     if (
       originalCliente.nome !== payload.nome ||
       originalCliente.cpf !== payload.cpf ||
-      (originalCliente.telefone || "") !== (payload.telefone || "") ||
+      (originalCliente.telefone1 || originalCliente.telefone || "") !== (payload.telefone1 || "") ||
+      (originalCliente.telefone2 || "") !== (payload.telefone2 || "") ||
       (originalCliente.valor ?? null) !== (payload.valor ?? null) ||
       toDateInputValue(originalCliente.dataCancelamento) !== payload.dataCancelamento
     ) {
