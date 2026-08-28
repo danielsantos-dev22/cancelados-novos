@@ -271,7 +271,7 @@ img, svg { display: block; }
 /* ==========================================================================
    Cards / Dashboard
    ========================================================================== */
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 26px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-bottom: 26px; }
 .stat-card {
   background: var(--color-white); border-radius: var(--radius-md); padding: 20px;
   box-shadow: var(--shadow-sm); border: 1px solid var(--color-gray-100);
