@@ -6,6 +6,7 @@ import { mountShell, requireAuth, currentUserInfo } from "./app-shell.js";
 import {
   formatDateBR,
   formatDateTimeBR,
+  formatMoedaBR,
   escapeHtml,
   confirmModal,
   showToast,
@@ -85,7 +86,9 @@ function renderInfo(c) {
   document.querySelector("[data-status-badge]").innerHTML = statusBadgeHtml(c);
   document.querySelector("[data-nome]").textContent = c.nome || "—";
   document.querySelector("[data-cpf]").textContent = c.cpf || "—";
+  document.querySelector("[data-telefone]").textContent = c.telefone || "—";
   document.querySelector("[data-cancelamento]").textContent = formatDateBR(c.dataCancelamento);
+  document.querySelector("[data-valor]").textContent = formatMoedaBR(c.valor);
   document.querySelector("[data-spc]").innerHTML = c.spcSerasa
     ? '<span class="badge badge-red">Sim</span>'
     : '<span class="badge badge-gray">Não</span>';
