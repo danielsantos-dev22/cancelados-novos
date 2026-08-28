@@ -6,6 +6,7 @@ import { mountShell, requireAuth, currentUserInfo } from "./app-shell.js";
 import {
   formatDateBR,
   formatMoedaBR,
+  calcularStatusPromessa,
   escapeHtml,
   debounce,
   confirmModal,
@@ -76,6 +77,7 @@ function init() {
       TODOS_CLIENTES = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       TODOS_CLIENTES.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       renderLista();
+      avisarPromessasPendentes();
     },
     (err) => {
       console.error(err);
@@ -85,13 +87,41 @@ function init() {
   );
 }
 
+let AVISO_PROMESSAS_MOSTRADO = false;
+
+function avisarPromessasPendentes() {
+  if (AVISO_PROMESSAS_MOSTRADO) return;
+
+  const hojeList = TODOS_CLIENTES.filter((c) => calcularStatusPromessa(c)?.hoje);
+  const atrasadasList = TODOS_CLIENTES.filter((c) => calcularStatusPromessa(c)?.vencida);
+
+  if (hojeList.length === 0 && atrasadasList.length === 0) return;
+  AVISO_PROMESSAS_MOSTRADO = true;
+
+  if (hojeList.length > 0) {
+    const nomes = hojeList.map((c) => c.nome).slice(0, 3).join(", ");
+    const resto = hojeList.length > 3 ? ` e mais ${hojeList.length - 3}` : "";
+    showToast(`Promessa de pagamento vence hoje: ${nomes}${resto}.`, "info", 8000);
+  }
+  if (atrasadasList.length > 0) {
+    const nomes = atrasadasList.map((c) => c.nome).slice(0, 3).join(", ");
+    const resto = atrasadasList.length > 3 ? ` e mais ${atrasadasList.length - 3}` : "";
+    showToast(`Promessa de pagamento atrasada: ${nomes}${resto}.`, "error", 8000);
+  }
+}
+
 function aplicarFiltro(lista) {
   const agora = Date.now();
   return lista.filter((c) => {
     if (BUSCA_ATUAL) {
       const nomeMatch = (c.nome || "").toLowerCase().includes(BUSCA_ATUAL);
       const cpfMatch = (c.cpf || "").replace(/\D/g, "").includes(BUSCA_ATUAL.replace(/\D/g, ""));
-      if (!nomeMatch && !cpfMatch) return false;
+      const buscaDigits = BUSCA_ATUAL.replace(/\D/g, "");
+      const telMatch =
+        buscaDigits.length > 0 &&
+        ((c.telefone1 || c.telefone || "").replace(/\D/g, "").includes(buscaDigits) ||
+          (c.telefone2 || "").replace(/\D/g, "").includes(buscaDigits));
+      if (!nomeMatch && !cpfMatch && !telMatch) return false;
     }
     switch (FILTRO_ATUAL) {
       case "spc":
@@ -104,6 +134,16 @@ function aplicarFiltro(lista) {
         return c.equipamentoDevolvido === "nao";
       case "parcial":
         return c.equipamentoDevolvido === "parcial";
+      case "promessa-hoje": {
+        const st = calcularStatusPromessa(c);
+        return Boolean(st?.hoje);
+      }
+      case "promessa-atrasada": {
+        const st = calcularStatusPromessa(c);
+        return Boolean(st?.vencida);
+      }
+      case "promessa-pendente":
+        return c.prometeuPagamento === true && !c.pagamentoRecebido;
       case "recentes": {
         const t = c.dataCancelamento ? new Date(c.dataCancelamento).getTime() : 0;
         return t && agora - t <= 30 * 24 * 60 * 60 * 1000;
@@ -146,6 +186,19 @@ function statusBadge(c) {
   return '<span class="badge badge-red">Pendente</span>';
 }
 
+function telefonesTexto(c) {
+  const t1 = c.telefone1 || c.telefone || "";
+  const t2 = c.telefone2 || "";
+  if (t1 && t2) return `${t1} / ${t2}`;
+  return t1 || t2 || "—";
+}
+
+function promessaBadge(c) {
+  const st = calcularStatusPromessa(c);
+  if (!st) return '<span class="badge badge-gray">—</span>';
+  return `<span class="badge ${st.badgeClass}">${escapeHtml(st.label)}</span>`;
+}
+
 function equipTexto(c) {
   if (c.equipamentoDevolvido === "sim") return "Devolvido";
   if (c.equipamentoDevolvido === "parcial") return "Parcialmente devolvido";
@@ -158,7 +211,7 @@ function renderLista() {
   const cardList = document.getElementById("cardList");
 
   if (lista.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9">
+    tbody.innerHTML = `<tr><td colspan="10">
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <strong>Nenhum cliente encontrado</strong>
@@ -174,12 +227,13 @@ function renderLista() {
     <tr>
       <td class="cell-name">${escapeHtml(c.nome || "—")}</td>
       <td>${escapeHtml(c.cpf || "—")}</td>
-      <td>${escapeHtml(c.telefone || "—")}</td>
+      <td>${escapeHtml(telefonesTexto(c))}</td>
       <td>${formatDateBR(c.dataCancelamento)}</td>
       <td>${formatMoedaBR(c.valor)}</td>
       <td>${c.spcSerasa ? '<span class="badge badge-red">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
       <td>${equipTexto(c)}</td>
       <td>${statusBadge(c)}</td>
+      <td>${promessaBadge(c)}</td>
       <td>
         <div class="row-actions">
           <a class="btn-icon" title="Visualizar" href="cliente-detalhes.html?id=${c.id}">
@@ -208,11 +262,12 @@ function renderLista() {
         </div>
         ${statusBadge(c)}
       </div>
-      <div class="cc-row"><span>Telefone</span><span>${escapeHtml(c.telefone || "—")}</span></div>
+      <div class="cc-row"><span>Telefone</span><span>${escapeHtml(telefonesTexto(c))}</span></div>
       <div class="cc-row"><span>Cancelamento</span><span>${formatDateBR(c.dataCancelamento)}</span></div>
       <div class="cc-row"><span>Valor</span><span>${formatMoedaBR(c.valor)}</span></div>
       <div class="cc-row"><span>SPC/SERASA</span><span>${c.spcSerasa ? "Sim" : "Não"}</span></div>
       <div class="cc-row"><span>Equipamento</span><span>${equipTexto(c)}</span></div>
+      <div class="cc-row"><span>Promessa</span><span>${promessaBadge(c)}</span></div>
       <div class="cc-actions">
         <a class="btn btn-outline btn-sm" href="cliente-detalhes.html?id=${c.id}">Ver</a>
         <a class="btn btn-outline btn-sm" href="cliente-form.html?id=${c.id}">Editar</a>
