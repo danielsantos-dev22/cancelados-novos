@@ -5,11 +5,13 @@ import { db } from "./firebase-config.js";
 import { mountShell, requireAuth, currentUserInfo } from "./app-shell.js";
 import {
   formatDateBR,
+  formatMoedaBR,
   escapeHtml,
   debounce,
   confirmModal,
   showToast,
   registrarHistorico,
+  exportarClientesExcel,
 } from "./utils.js";
 import {
   collection,
@@ -63,6 +65,8 @@ function init() {
     }, 220)
   );
 
+  document.getElementById("btnExportarExcel").addEventListener("click", handleExportarExcel);
+
   const clientesRef = collection(db, "clientes_cancelados");
   const qAtivos = query(clientesRef, where("ativo", "==", true));
 
@@ -110,6 +114,32 @@ function aplicarFiltro(lista) {
   });
 }
 
+async function handleExportarExcel() {
+  const btn = document.getElementById("btnExportarExcel");
+  const label = document.getElementById("btnExportarExcelLabel");
+  const lista = aplicarFiltro(TODOS_CLIENTES);
+
+  if (lista.length === 0) {
+    showToast("Não há clientes para exportar com os filtros atuais.", "info");
+    return;
+  }
+
+  btn.disabled = true;
+  const textoOriginal = label.textContent;
+  label.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    await exportarClientesExcel(lista, "clientes-cancelados");
+    showToast(`Exportação concluída (${lista.length} cliente(s)).`, "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Não foi possível exportar para Excel.", "error");
+  } finally {
+    btn.disabled = false;
+    label.textContent = textoOriginal;
+  }
+}
+
 function statusBadge(c) {
   if (c.equipamentoDevolvido === "sim") return '<span class="badge badge-green">Concluído</span>';
   if (c.equipamentoDevolvido === "parcial") return '<span class="badge badge-amber">Parcial</span>';
@@ -128,7 +158,7 @@ function renderLista() {
   const cardList = document.getElementById("cardList");
 
   if (lista.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7">
+    tbody.innerHTML = `<tr><td colspan="9">
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <strong>Nenhum cliente encontrado</strong>
@@ -144,7 +174,9 @@ function renderLista() {
     <tr>
       <td class="cell-name">${escapeHtml(c.nome || "—")}</td>
       <td>${escapeHtml(c.cpf || "—")}</td>
+      <td>${escapeHtml(c.telefone || "—")}</td>
       <td>${formatDateBR(c.dataCancelamento)}</td>
+      <td>${formatMoedaBR(c.valor)}</td>
       <td>${c.spcSerasa ? '<span class="badge badge-red">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
       <td>${equipTexto(c)}</td>
       <td>${statusBadge(c)}</td>
@@ -176,7 +208,9 @@ function renderLista() {
         </div>
         ${statusBadge(c)}
       </div>
+      <div class="cc-row"><span>Telefone</span><span>${escapeHtml(c.telefone || "—")}</span></div>
       <div class="cc-row"><span>Cancelamento</span><span>${formatDateBR(c.dataCancelamento)}</span></div>
+      <div class="cc-row"><span>Valor</span><span>${formatMoedaBR(c.valor)}</span></div>
       <div class="cc-row"><span>SPC/SERASA</span><span>${c.spcSerasa ? "Sim" : "Não"}</span></div>
       <div class="cc-row"><span>Equipamento</span><span>${equipTexto(c)}</span></div>
       <div class="cc-actions">
