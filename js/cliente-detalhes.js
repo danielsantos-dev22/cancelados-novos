@@ -7,6 +7,7 @@ import {
   formatDateBR,
   formatDateTimeBR,
   formatMoedaBR,
+  calcularStatusPromessa,
   escapeHtml,
   confirmModal,
   showToast,
@@ -86,7 +87,10 @@ function renderInfo(c) {
   document.querySelector("[data-status-badge]").innerHTML = statusBadgeHtml(c);
   document.querySelector("[data-nome]").textContent = c.nome || "—";
   document.querySelector("[data-cpf]").textContent = c.cpf || "—";
-  document.querySelector("[data-telefone]").textContent = c.telefone || "—";
+  document.querySelector("[data-telefone1]").textContent = c.telefone1 || c.telefone || "—";
+  const temTelefone2 = Boolean(c.telefone2);
+  document.querySelector("[data-linha-telefone2]").classList.toggle("hidden", !temTelefone2);
+  document.querySelector("[data-telefone2]").textContent = c.telefone2 || "—";
   document.querySelector("[data-cancelamento]").textContent = formatDateBR(c.dataCancelamento);
   document.querySelector("[data-valor]").textContent = formatMoedaBR(c.valor);
   document.querySelector("[data-spc]").innerHTML = c.spcSerasa
@@ -104,6 +108,15 @@ function renderInfo(c) {
   document.querySelector("[data-dev-data]").textContent = formatDateBR(c.dataDevolucao);
   document.querySelector("[data-linha-dev-obs]").classList.toggle("hidden", !c.observacaoDevolucao);
   document.querySelector("[data-dev-obs]").textContent = c.observacaoDevolucao || "—";
+
+  const statusPromessa = calcularStatusPromessa(c);
+  document.querySelector("[data-promessa]").innerHTML = c.prometeuPagamento
+    ? `<span class="badge ${statusPromessa.badgeClass}">${escapeHtml(statusPromessa.label)}</span>`
+    : '<span class="badge badge-gray">Não</span>';
+  document.querySelector("[data-linha-promessa-data]").classList.toggle("hidden", !c.prometeuPagamento);
+  document.querySelector("[data-promessa-data]").textContent = formatDateBR(c.dataPromessaPagamento);
+  document.querySelector("[data-linha-promessa-obs]").classList.toggle("hidden", !c.observacaoPromessa);
+  document.querySelector("[data-promessa-obs]").textContent = c.observacaoPromessa || "—";
 }
 
 function observarEquipamentos() {
