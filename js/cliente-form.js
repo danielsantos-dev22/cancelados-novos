@@ -6,6 +6,9 @@ import { mountShell, requireAuth, currentUserInfo } from "./app-shell.js";
 import {
   attachCPFMask,
   isValidCPF,
+  attachTelefoneMask,
+  attachMoedaMask,
+  moedaParaNumero,
   showToast,
   registrarHistorico,
 } from "./utils.js";
@@ -51,6 +54,8 @@ requireAuth((user) => {
 
 function wireStaticUI() {
   attachCPFMask(document.getElementById("fCpf"));
+  attachTelefoneMask(document.getElementById("fTelefone"));
+  attachMoedaMask(document.getElementById("fValor"));
 
   wireRadioGroup("spcGroup", "spc", "spcCondicional");
   wireRadioGroup("devolucaoGroup", "devolucao", "devolucaoCondicional");
@@ -140,7 +145,12 @@ async function carregarCliente(id) {
 
     document.getElementById("fNome").value = c.nome || "";
     document.getElementById("fCpf").value = c.cpf || "";
+    document.getElementById("fTelefone").value = c.telefone || "";
     document.getElementById("fDataCancelamento").value = toDateInputValue(c.dataCancelamento);
+    document.getElementById("fValor").value =
+      c.valor !== undefined && c.valor !== null
+        ? Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : "";
 
     const spcValue = c.spcSerasa ? "sim" : "nao";
     document.querySelector(`input[name="spc"][value="${spcValue}"]`).checked = true;
@@ -201,6 +211,12 @@ function validarFormulario() {
   setFieldError("fCpf", "errCpf", !cpfOk);
   if (!cpfOk) valid = false;
 
+  const telefone = document.getElementById("fTelefone").value.trim();
+  const telefoneDigits = telefone.replace(/\D/g, "");
+  const telefoneOk = telefoneDigits.length === 0 || telefoneDigits.length >= 10;
+  setFieldError("fTelefone", "errTelefone", !telefoneOk);
+  if (!telefoneOk) valid = false;
+
   setFieldError("fDataCancelamento", "errData", !dataCancelamento);
   if (!dataCancelamento) valid = false;
 
@@ -226,6 +242,8 @@ async function handleSubmit(e) {
   const payload = {
     nome,
     cpf: document.getElementById("fCpf").value.trim(),
+    telefone: document.getElementById("fTelefone").value.trim(),
+    valor: moedaParaNumero(document.getElementById("fValor").value.trim()),
     dataCancelamento: document.getElementById("fDataCancelamento").value,
     spcSerasa,
     dataSpcSerasa: spcSerasa ? document.getElementById("fDataSpc").value || null : null,
@@ -314,6 +332,8 @@ async function salvarEdicao(id, payload) {
     if (
       originalCliente.nome !== payload.nome ||
       originalCliente.cpf !== payload.cpf ||
+      (originalCliente.telefone || "") !== (payload.telefone || "") ||
+      (originalCliente.valor ?? null) !== (payload.valor ?? null) ||
       toDateInputValue(originalCliente.dataCancelamento) !== payload.dataCancelamento
     ) {
       await registrarHistorico(id, usuarioAtual, "Dados do cliente atualizados", `Atualizou os dados cadastrais de ${payload.nome}.`);
