@@ -38,9 +38,19 @@
           <span class="field-error" id="errCpf">Informe um CPF válido.</span>
         </div>
         <div class="field">
+          <label for="fTelefone">Telefone</label>
+          <input type="text" id="fTelefone" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" />
+          <span class="field-error" id="errTelefone">Informe um telefone válido.</span>
+        </div>
+        <div class="field">
           <label for="fDataCancelamento">Data do cancelamento</label>
           <input type="date" id="fDataCancelamento" required />
           <span class="field-error" id="errData">Informe a data do cancelamento.</span>
+        </div>
+        <div class="field">
+          <label for="fValor">Valor (R$)</label>
+          <input type="text" id="fValor" placeholder="0,00" inputmode="decimal" />
+          <span class="field-error" id="errValor">Informe um valor válido.</span>
         </div>
       </div>
     </div>
