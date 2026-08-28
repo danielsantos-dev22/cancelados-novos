@@ -51,6 +51,67 @@ export function isValidCPF(cpfRaw) {
   return resto === parseInt(cpf[10], 10);
 }
 
+/* ----------------------------- Telefone --------------------------------- */
+
+/** Aplica a máscara (00) 00000-0000 / (00) 0000-0000 conforme o usuário digita. */
+export function maskTelefone(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+  return digits
+    .replace(/(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2");
+}
+
+/** Anexa a um <input> a máscara de telefone em tempo real. */
+export function attachTelefoneMask(input) {
+  input.addEventListener("input", () => {
+    const pos = input.selectionStart;
+    const before = input.value.length;
+    input.value = maskTelefone(input.value);
+    const after = input.value.length;
+    const diff = after - before;
+    if (pos !== null) input.setSelectionRange(pos + diff, pos + diff);
+  });
+}
+
+/* ----------------------------- Valor (moeda) ----------------------------- */
+
+/** Aplica máscara de moeda (000,00) conforme o usuário digita, tratando os dígitos como centavos. */
+export function maskMoeda(value) {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  const number = parseInt(digits, 10) / 100;
+  return number.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/** Anexa a um <input> a máscara de moeda em tempo real (o input guarda o valor formatado tipo "1.234,56"). */
+export function attachMoedaMask(input) {
+  input.addEventListener("input", () => {
+    input.value = maskMoeda(input.value);
+    input.setSelectionRange(input.value.length, input.value.length);
+  });
+}
+
+/** Converte uma string "1.234,56" (pt-BR) para Number 1234.56. Retorna null se vazio/ inválido. */
+export function moedaParaNumero(valorBR) {
+  if (!valorBR) return null;
+  const limpo = String(valorBR).trim().replace(/\./g, "").replace(",", ".");
+  const n = parseFloat(limpo);
+  return isNaN(n) ? null : n;
+}
+
+/** Formata um número como "R$ 1.234,56". */
+export function formatMoedaBR(valor) {
+  if (valor === null || valor === undefined || valor === "") return "—";
+  const n = typeof valor === "number" ? valor : moedaParaNumero(valor);
+  if (n === null) return "—";
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 /* ----------------------------- Datas ------------------------------------ */
 
 /** Converte um valor 'YYYY-MM-DD' (input type=date) para 'DD/MM/AAAA'. */
@@ -247,6 +308,60 @@ export async function registrarHistorico(clienteId, usuario, acao, descricao) {
   } catch (err) {
     console.error("Falha ao registrar histórico:", err);
   }
+}
+
+/* ----------------------------- Exportar para Excel ------------------------ */
+
+let _xlsxLoadPromise = null;
+
+/** Carrega a biblioteca SheetJS (xlsx) via CDN sob demanda, apenas uma vez. */
+function carregarXLSX() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (_xlsxLoadPromise) return _xlsxLoadPromise;
+  _xlsxLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    script.onload = () => resolve(window.XLSX);
+    script.onerror = () => reject(new Error("Não foi possível carregar a biblioteca de exportação."));
+    document.head.appendChild(script);
+  });
+  return _xlsxLoadPromise;
+}
+
+/**
+ * Exporta uma lista de clientes para um arquivo .xlsx e inicia o download.
+ * @param {Array<object>} clientes lista de clientes (já filtrada, se aplicável)
+ * @param {string} nomeArquivo nome do arquivo, sem extensão
+ */
+export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-cancelados") {
+  const XLSX = await carregarXLSX();
+
+  const linhas = clientes.map((c) => ({
+    Nome: c.nome || "",
+    CPF: c.cpf || "",
+    Telefone: c.telefone || "",
+    "Data do cancelamento": formatDateBR(c.dataCancelamento),
+    "Valor (R$)": c.valor !== undefined && c.valor !== null ? Number(c.valor) : "",
+    "SPC/SERASA": c.spcSerasa ? "Sim" : "Não",
+    "Data inclusão SPC": c.spcSerasa ? formatDateBR(c.dataSpcSerasa) : "",
+    "Observação SPC": c.observacaoSpc || "",
+    "Devolução de equipamento":
+      c.equipamentoDevolvido === "sim" ? "Devolvido" : c.equipamentoDevolvido === "parcial" ? "Parcialmente devolvido" : "Pendente",
+    "Data da devolução": c.equipamentoDevolvido !== "nao" ? formatDateBR(c.dataDevolucao) : "",
+    "Observação devolução": c.observacaoDevolucao || "",
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(linhas);
+  worksheet["!cols"] = [
+    { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 14 },
+    { wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 30 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+
+  const dataStr = new Date().toISOString().split("T")[0];
+  XLSX.writeFile(workbook, `${nomeArquivo}-${dataStr}.xlsx`);
 }
 
 /* ----------------------------- Mensagens de erro Firebase ----------------- */
