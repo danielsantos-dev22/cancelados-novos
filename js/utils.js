@@ -112,6 +112,36 @@ export function formatMoedaBR(valor) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/* ----------------------------- Promessa de pagamento ---------------------- */
+
+/** Retorna a data de hoje no formato 'YYYY-MM-DD', no fuso de Belém. */
+export function hojeISO() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Belem" }).format(new Date());
+}
+
+/**
+ * Calcula o status da promessa de pagamento de um cliente.
+ * Retorna null se o cliente não tem promessa registrada.
+ * Caso contrário: { label, badgeClass, vencida, hoje }
+ */
+export function calcularStatusPromessa(c) {
+  if (!c || !c.prometeuPagamento) return null;
+  if (c.pagamentoRecebido) {
+    return { label: "Pagamento recebido", badgeClass: "badge-green", vencida: false, hoje: false };
+  }
+  if (!c.dataPromessaPagamento) {
+    return { label: "Promessa sem data", badgeClass: "badge-gray", vencida: false, hoje: false };
+  }
+  const hoje = hojeISO();
+  if (c.dataPromessaPagamento < hoje) {
+    return { label: "Promessa atrasada", badgeClass: "badge-red", vencida: true, hoje: false };
+  }
+  if (c.dataPromessaPagamento === hoje) {
+    return { label: "Vence hoje", badgeClass: "badge-amber", vencida: false, hoje: true };
+  }
+  return { label: "Aguardando", badgeClass: "badge-blue", vencida: false, hoje: false };
+}
+
 /* ----------------------------- Datas ------------------------------------ */
 
 /** Converte um valor 'YYYY-MM-DD' (input type=date) para 'DD/MM/AAAA'. */
@@ -349,12 +379,17 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
       c.equipamentoDevolvido === "sim" ? "Devolvido" : c.equipamentoDevolvido === "parcial" ? "Parcialmente devolvido" : "Pendente",
     "Data da devolução": c.equipamentoDevolvido !== "nao" ? formatDateBR(c.dataDevolucao) : "",
     "Observação devolução": c.observacaoDevolucao || "",
+    "Promessa de pagamento": c.prometeuPagamento ? "Sim" : "Não",
+    "Data prometida": c.prometeuPagamento ? formatDateBR(c.dataPromessaPagamento) : "",
+    "Pagamento recebido": c.prometeuPagamento ? (c.pagamentoRecebido ? "Sim" : "Não") : "",
+    "Observação promessa": c.observacaoPromessa || "",
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(linhas);
   worksheet["!cols"] = [
     { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 14 },
     { wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 30 },
+    { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 30 },
   ];
 
   const workbook = XLSX.utils.book_new();
