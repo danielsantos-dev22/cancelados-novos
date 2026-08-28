@@ -17,10 +17,16 @@
       <h1>Clientes Cancelados</h1>
       <p class="sub">Consulte, pesquise e filtre todos os clientes com contrato cancelado.</p>
     </div>
-    <a href="cliente-form.html" class="btn btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
-      Novo Cliente
-    </a>
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-outline" id="btnExportarExcel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span id="btnExportarExcelLabel">Exportar Excel</span>
+      </button>
+      <a href="cliente-form.html" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Novo Cliente
+      </a>
+    </div>
   </div>
 
   <div class="toolbar">
@@ -46,7 +52,9 @@
           <tr>
             <th>Cliente</th>
             <th>CPF</th>
+            <th>Telefone</th>
             <th>Cancelamento</th>
+            <th>Valor</th>
             <th>SPC/SERASA</th>
             <th>Equipamento</th>
             <th>Status</th>
