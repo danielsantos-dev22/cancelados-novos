@@ -41,11 +41,19 @@
           <label for="fTelefone1">Telefone 1</label>
           <input type="text" id="fTelefone1" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" />
           <span class="field-error" id="errTelefone1">Informe um telefone válido.</span>
+          <div class="phone-flags">
+            <label class="checkbox-inline"><input type="checkbox" id="fTel1SemWhats" /> Sem WhatsApp</label>
+            <label class="checkbox-inline"><input type="checkbox" id="fTel1NaoFunciona" /> Número não funciona</label>
+          </div>
         </div>
         <div class="field">
           <label for="fTelefone2">Telefone 2 <span style="color:var(--color-gray-500);font-weight:400;">(opcional)</span></label>
           <input type="text" id="fTelefone2" placeholder="(00) 00000-0000" inputmode="numeric" maxlength="15" />
           <span class="field-error" id="errTelefone2">Informe um telefone válido.</span>
+          <div class="phone-flags">
+            <label class="checkbox-inline"><input type="checkbox" id="fTel2SemWhats" /> Sem WhatsApp</label>
+            <label class="checkbox-inline"><input type="checkbox" id="fTel2NaoFunciona" /> Número não funciona</label>
+          </div>
         </div>
         <div class="field">
           <label for="fDataCancelamento">Data do cancelamento</label>
