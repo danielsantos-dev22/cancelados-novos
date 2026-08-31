@@ -53,10 +53,38 @@ requireAuth((user) => {
 
 /* --------------------------------------------------------------------- */
 
+let syncTel1Flags = () => {};
+let syncTel2Flags = () => {};
+
+function wirePhoneFlags(inputId, semWhatsId, naoFuncId) {
+  const input = document.getElementById(inputId);
+  const semWhats = document.getElementById(semWhatsId);
+  const naoFunc = document.getElementById(naoFuncId);
+
+  function sync() {
+    const hasValue = input.value.trim().length > 0;
+    naoFunc.disabled = !hasValue;
+    if (!hasValue) {
+      naoFunc.checked = false;
+      semWhats.checked = false;
+    }
+    if (naoFunc.checked) semWhats.checked = true;
+    semWhats.disabled = !hasValue || naoFunc.checked;
+  }
+
+  input.addEventListener("input", sync);
+  naoFunc.addEventListener("change", sync);
+  semWhats.addEventListener("change", sync);
+  sync();
+  return sync;
+}
+
 function wireStaticUI() {
   attachCPFMask(document.getElementById("fCpf"));
   attachTelefoneMask(document.getElementById("fTelefone1"));
   attachTelefoneMask(document.getElementById("fTelefone2"));
+  syncTel1Flags = wirePhoneFlags("fTelefone1", "fTel1SemWhats", "fTel1NaoFunciona");
+  syncTel2Flags = wirePhoneFlags("fTelefone2", "fTel2SemWhats", "fTel2NaoFunciona");
   attachMoedaMask(document.getElementById("fValor"));
 
   wireRadioGroup("spcGroup", "spc", "spcCondicional");
@@ -150,6 +178,12 @@ async function carregarCliente(id) {
     document.getElementById("fCpf").value = c.cpf || "";
     document.getElementById("fTelefone1").value = c.telefone1 || c.telefone || "";
     document.getElementById("fTelefone2").value = c.telefone2 || "";
+    document.getElementById("fTel1SemWhats").checked = Boolean(c.telefone1SemWhatsapp);
+    document.getElementById("fTel1NaoFunciona").checked = Boolean(c.telefone1NaoFunciona);
+    document.getElementById("fTel2SemWhats").checked = Boolean(c.telefone2SemWhatsapp);
+    document.getElementById("fTel2NaoFunciona").checked = Boolean(c.telefone2NaoFunciona);
+    syncTel1Flags();
+    syncTel2Flags();
     document.getElementById("fDataCancelamento").value = toDateInputValue(c.dataCancelamento);
     document.getElementById("fValor").value =
       c.valor !== undefined && c.valor !== null
@@ -267,7 +301,11 @@ async function handleSubmit(e) {
     nome,
     cpf: document.getElementById("fCpf").value.trim(),
     telefone1: document.getElementById("fTelefone1").value.trim(),
+    telefone1SemWhatsapp: document.getElementById("fTel1SemWhats").checked,
+    telefone1NaoFunciona: document.getElementById("fTel1NaoFunciona").checked,
     telefone2: document.getElementById("fTelefone2").value.trim(),
+    telefone2SemWhatsapp: document.getElementById("fTel2SemWhats").checked,
+    telefone2NaoFunciona: document.getElementById("fTel2NaoFunciona").checked,
     valor: moedaParaNumero(document.getElementById("fValor").value.trim()),
     dataCancelamento: document.getElementById("fDataCancelamento").value,
     spcSerasa,
