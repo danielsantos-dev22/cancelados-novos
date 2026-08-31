@@ -112,6 +112,33 @@ export function formatMoedaBR(valor) {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/**
+ * Calcula o status geral de contato de um cliente, considerando os dois
+ * telefones e suas marcações de "sem WhatsApp" / "não funciona".
+ * Retorna null se não há problema de contato a destacar.
+ */
+export function statusContato(c) {
+  if (!c) return null;
+  const telefones = [
+    { numero: c.telefone1 || c.telefone, semWhatsapp: c.telefone1SemWhatsapp, naoFunciona: c.telefone1NaoFunciona },
+    { numero: c.telefone2, semWhatsapp: c.telefone2SemWhatsapp, naoFunciona: c.telefone2NaoFunciona },
+  ].filter((t) => t.numero);
+
+  if (telefones.length === 0) return null;
+
+  const funcionando = telefones.filter((t) => !t.naoFunciona);
+  if (funcionando.length === 0) {
+    return { label: "Sem contato válido", badgeClass: "badge-red", semContato: true };
+  }
+
+  const temWhatsapp = funcionando.some((t) => !t.semWhatsapp);
+  if (!temWhatsapp) {
+    return { label: "Sem WhatsApp", badgeClass: "badge-amber", semContato: false };
+  }
+
+  return null;
+}
+
 /* ----------------------------- Promessa de pagamento ---------------------- */
 
 /** Retorna a data de hoje no formato 'YYYY-MM-DD', no fuso de Belém. */
@@ -369,7 +396,12 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
   const linhas = clientes.map((c) => ({
     Nome: c.nome || "",
     CPF: c.cpf || "",
-    Telefone: c.telefone || "",
+    "Telefone 1": c.telefone1 || c.telefone || "",
+    "Telefone 1 sem WhatsApp": c.telefone1 || c.telefone ? (c.telefone1SemWhatsapp ? "Sim" : "Não") : "",
+    "Telefone 1 não funciona": c.telefone1 || c.telefone ? (c.telefone1NaoFunciona ? "Sim" : "Não") : "",
+    "Telefone 2": c.telefone2 || "",
+    "Telefone 2 sem WhatsApp": c.telefone2 ? (c.telefone2SemWhatsapp ? "Sim" : "Não") : "",
+    "Telefone 2 não funciona": c.telefone2 ? (c.telefone2NaoFunciona ? "Sim" : "Não") : "",
     "Data do cancelamento": formatDateBR(c.dataCancelamento),
     "Valor (R$)": c.valor !== undefined && c.valor !== null ? Number(c.valor) : "",
     "SPC/SERASA": c.spcSerasa ? "Sim" : "Não",
@@ -387,7 +419,8 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
 
   const worksheet = XLSX.utils.json_to_sheet(linhas);
   worksheet["!cols"] = [
-    { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 14 },
+    { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 18 },
+    { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 14 },
     { wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 30 },
     { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 30 },
   ];
