@@ -193,6 +193,11 @@ function telefonesTexto(c) {
   return t1 || t2 || "—";
 }
 
+function equipBadge(c) {
+  const cls = c.equipamentoDevolvido === "sim" ? "badge-green" : c.equipamentoDevolvido === "parcial" ? "badge-amber" : "badge-red";
+  return `<span class="badge ${cls}">${escapeHtml(equipTexto(c))}</span>`;
+}
+
 function promessaBadge(c) {
   const st = calcularStatusPromessa(c);
   if (!st) return '<span class="badge badge-gray">—</span>';
@@ -211,7 +216,7 @@ function renderLista() {
   const cardList = document.getElementById("cardList");
 
   if (lista.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10">
+    tbody.innerHTML = `<tr><td colspan="7">
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <strong>Nenhum cliente encontrado</strong>
@@ -225,14 +230,14 @@ function renderLista() {
     .map(
       (c) => `
     <tr>
-      <td class="cell-name">${escapeHtml(c.nome || "—")}</td>
-      <td>${escapeHtml(c.cpf || "—")}</td>
-      <td>${escapeHtml(telefonesTexto(c))}</td>
+      <td class="cell-name">
+        <div>${escapeHtml(c.nome || "—")}</div>
+        <div class="cpf-sub">${escapeHtml([c.cpf, c.telefone1 || c.telefone, c.telefone2].filter(Boolean).join(" · ") || "—")}</div>
+      </td>
       <td>${formatDateBR(c.dataCancelamento)}</td>
       <td>${formatMoedaBR(c.valor)}</td>
       <td>${c.spcSerasa ? '<span class="badge badge-red">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
-      <td>${equipTexto(c)}</td>
-      <td>${statusBadge(c)}</td>
+      <td>${equipBadge(c)}</td>
       <td>${promessaBadge(c)}</td>
       <td>
         <div class="row-actions">
