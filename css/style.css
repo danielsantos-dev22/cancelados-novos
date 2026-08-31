@@ -287,6 +287,25 @@ img, svg { display: block; }
 .stat-card.tone-green .stat-icon { background: var(--color-green-bg); color: var(--color-green); }
 .stat-card .stat-value { font-family: var(--font-display); font-size: 30px; font-weight: 700; }
 .stat-card .stat-label { color: var(--color-gray-500); font-size: 13px; font-weight: 500; }
+.stat-card-alert {
+  position: relative;
+  border-color: var(--color-red);
+  box-shadow: 0 0 0 1px var(--color-red-bg), var(--shadow-sm);
+}
+.stat-card-alert.tone-amber { border-color: var(--color-amber); box-shadow: 0 0 0 1px var(--color-amber-bg), var(--shadow-sm); }
+.stat-card-alert:hover { box-shadow: 0 0 0 1px var(--color-red-bg), var(--shadow-md); }
+.stat-card-alert.tone-amber:hover { box-shadow: 0 0 0 1px var(--color-amber-bg), var(--shadow-md); }
+.stat-card-alert::after {
+  content: ""; position: absolute; top: 16px; right: 16px; width: 9px; height: 9px;
+  border-radius: 50%; background: var(--color-red);
+  box-shadow: 0 0 0 0 rgba(214,69,69,0.55);
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+.stat-card-alert.tone-amber::after { background: var(--color-amber); box-shadow: 0 0 0 0 rgba(217,140,25,0.5); }
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214,69,69,0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(214,69,69,0); }
+}
 
 .panel {
   background: var(--color-white); border-radius: var(--radius-md); border: 1px solid var(--color-gray-100);
@@ -336,7 +355,7 @@ table.data-table th {
 table.data-table td { padding: 14px; border-bottom: 1px solid var(--color-gray-100); vertical-align: middle; }
 table.data-table tbody tr:hover { background: var(--color-gray-50); }
 .cell-name { font-weight: 600; }
-.cell-name .cpf-sub { display: none; }
+.cell-name .cpf-sub { display: block; font-weight: 400; color: var(--color-gray-500); font-size: 12px; margin-top: 2px; }
 .row-actions { display: flex; gap: 6px; }
 .empty-state { text-align: center; padding: 60px 20px; color: var(--color-gray-500); }
 .empty-state svg { width: 46px; height: 46px; margin: 0 auto 14px; opacity: .5; }
