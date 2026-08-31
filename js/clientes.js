@@ -7,6 +7,7 @@ import {
   formatDateBR,
   formatMoedaBR,
   calcularStatusPromessa,
+  statusContato,
   escapeHtml,
   debounce,
   confirmModal,
@@ -144,6 +145,8 @@ function aplicarFiltro(lista) {
       }
       case "promessa-pendente":
         return c.prometeuPagamento === true && !c.pagamentoRecebido;
+      case "sem-contato":
+        return Boolean(statusContato(c)?.semContato);
       case "recentes": {
         const t = c.dataCancelamento ? new Date(c.dataCancelamento).getTime() : 0;
         return t && agora - t <= 30 * 24 * 60 * 60 * 1000;
@@ -193,6 +196,17 @@ function telefonesTexto(c) {
   return t1 || t2 || "—";
 }
 
+function contatoBadgeSpan(c) {
+  const st = statusContato(c);
+  if (!st) return "";
+  return `<span class="badge ${st.badgeClass}">${escapeHtml(st.label)}</span>`;
+}
+
+function contatoBadge(c) {
+  const span = contatoBadgeSpan(c);
+  return span ? `<div style="margin-top:5px;">${span}</div>` : "";
+}
+
 function equipBadge(c) {
   const cls = c.equipamentoDevolvido === "sim" ? "badge-green" : c.equipamentoDevolvido === "parcial" ? "badge-amber" : "badge-red";
   return `<span class="badge ${cls}">${escapeHtml(equipTexto(c))}</span>`;
@@ -233,6 +247,7 @@ function renderLista() {
       <td class="cell-name">
         <div>${escapeHtml(c.nome || "—")}</div>
         <div class="cpf-sub">${escapeHtml([c.cpf, c.telefone1 || c.telefone, c.telefone2].filter(Boolean).join(" · ") || "—")}</div>
+        ${contatoBadge(c)}
       </td>
       <td>${formatDateBR(c.dataCancelamento)}</td>
       <td>${formatMoedaBR(c.valor)}</td>
@@ -268,6 +283,7 @@ function renderLista() {
         ${statusBadge(c)}
       </div>
       <div class="cc-row"><span>Telefone</span><span>${escapeHtml(telefonesTexto(c))}</span></div>
+      ${statusContato(c) ? `<div class="cc-row"><span>Contato</span><span>${contatoBadgeSpan(c)}</span></div>` : ""}
       <div class="cc-row"><span>Cancelamento</span><span>${formatDateBR(c.dataCancelamento)}</span></div>
       <div class="cc-row"><span>Valor</span><span>${formatMoedaBR(c.valor)}</span></div>
       <div class="cc-row"><span>SPC/SERASA</span><span>${c.spcSerasa ? "Sim" : "Não"}</span></div>
