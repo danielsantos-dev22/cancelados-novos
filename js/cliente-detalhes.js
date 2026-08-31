@@ -8,6 +8,7 @@ import {
   formatDateTimeBR,
   formatMoedaBR,
   calcularStatusPromessa,
+  statusContato,
   escapeHtml,
   confirmModal,
   showToast,
@@ -44,6 +45,17 @@ requireAuth((user) => {
   observarEquipamentos();
   observarHistorico();
 });
+
+function renderTelefoneComTag(numero, semWhatsapp, naoFunciona) {
+  if (!numero) return "—";
+  let tag = "";
+  if (naoFunciona) {
+    tag = ' <span class="badge badge-red" style="margin-left:6px;">Não funciona</span>';
+  } else if (semWhatsapp) {
+    tag = ' <span class="badge badge-amber" style="margin-left:6px;">Sem WhatsApp</span>';
+  }
+  return `${escapeHtml(numero)}${tag}`;
+}
 
 function statusBadgeHtml(c) {
   if (c.equipamentoDevolvido === "sim") return '<span class="badge badge-green">Concluído</span>';
@@ -87,10 +99,24 @@ function renderInfo(c) {
   document.querySelector("[data-status-badge]").innerHTML = statusBadgeHtml(c);
   document.querySelector("[data-nome]").textContent = c.nome || "—";
   document.querySelector("[data-cpf]").textContent = c.cpf || "—";
-  document.querySelector("[data-telefone1]").textContent = c.telefone1 || c.telefone || "—";
+  document.querySelector("[data-telefone1]").innerHTML = renderTelefoneComTag(
+    c.telefone1 || c.telefone,
+    c.telefone1SemWhatsapp,
+    c.telefone1NaoFunciona
+  );
   const temTelefone2 = Boolean(c.telefone2);
   document.querySelector("[data-linha-telefone2]").classList.toggle("hidden", !temTelefone2);
-  document.querySelector("[data-telefone2]").textContent = c.telefone2 || "—";
+  document.querySelector("[data-telefone2]").innerHTML = renderTelefoneComTag(
+    c.telefone2,
+    c.telefone2SemWhatsapp,
+    c.telefone2NaoFunciona
+  );
+
+  const contato = statusContato(c);
+  document.querySelector("[data-linha-contato]").classList.toggle("hidden", !contato);
+  if (contato) {
+    document.querySelector("[data-contato]").innerHTML = `<span class="badge ${contato.badgeClass}">${escapeHtml(contato.label)}</span>`;
+  }
   document.querySelector("[data-cancelamento]").textContent = formatDateBR(c.dataCancelamento);
   document.querySelector("[data-valor]").textContent = formatMoedaBR(c.valor);
   document.querySelector("[data-spc]").innerHTML = c.spcSerasa
