@@ -21,11 +21,14 @@
   </div>
 
   <form id="clienteForm" novalidate>
-    <div class="panel form-section">
-      <div class="form-section-title">
-        <div class="num">1</div>
+    <div class="panel form-section accordion-section open" data-section="1">
+      <button type="button" class="form-section-title accordion-toggle">
+        <span class="num">1</span>
         <h3>Dados do cliente</h3>
-      </div>
+        <span class="accordion-check" data-check></span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="accordion-body">
       <div class="form-grid">
         <div class="field full">
           <label for="fNome">Nome completo</label>
@@ -66,13 +69,17 @@
           <span class="field-error" id="errValor">Informe um valor válido.</span>
         </div>
       </div>
+      </div>
     </div>
 
-    <div class="panel form-section">
-      <div class="form-section-title">
-        <div class="num">2</div>
+    <div class="panel form-section accordion-section" data-section="2">
+      <button type="button" class="form-section-title accordion-toggle">
+        <span class="num">2</span>
         <h3>SPC/SERASA</h3>
-      </div>
+        <span class="accordion-check" data-check></span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="accordion-body">
       <p style="font-size:13.5px;color:var(--color-gray-700);margin-bottom:10px;">Cliente foi inserido no SPC/SERASA?</p>
       <div class="radio-group" id="spcGroup">
         <label class="radio-pill" data-value="nao"><input type="radio" name="spc" value="nao" checked /> Não</label>
@@ -88,13 +95,17 @@
           <textarea id="fObsSpc" rows="2" placeholder="Observações sobre a inclusão no SPC/SERASA"></textarea>
         </div>
       </div>
+      </div>
     </div>
 
-    <div class="panel form-section">
-      <div class="form-section-title">
-        <div class="num">3</div>
+    <div class="panel form-section accordion-section" data-section="3">
+      <button type="button" class="form-section-title accordion-toggle">
+        <span class="num">3</span>
         <h3>Devolução de equipamentos</h3>
-      </div>
+        <span class="accordion-check" data-check></span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="accordion-body">
       <p style="font-size:13.5px;color:var(--color-gray-700);margin-bottom:10px;">Equipamento foi devolvido?</p>
       <div class="radio-group" id="devolucaoGroup">
         <label class="radio-pill" data-value="nao"><input type="radio" name="devolucao" value="nao" checked /> Não</label>
@@ -111,13 +122,17 @@
           <textarea id="fObsDevolucao" rows="2" placeholder="Observações sobre a devolução"></textarea>
         </div>
       </div>
+      </div>
     </div>
 
-    <div class="panel form-section">
-      <div class="form-section-title">
-        <div class="num">4</div>
+    <div class="panel form-section accordion-section" data-section="4">
+      <button type="button" class="form-section-title accordion-toggle">
+        <span class="num">4</span>
         <h3>Promessa de pagamento</h3>
-      </div>
+        <span class="accordion-check" data-check></span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="accordion-body">
       <p style="font-size:13.5px;color:var(--color-gray-700);margin-bottom:10px;">Cliente fez promessa de pagamento?</p>
       <div class="radio-group" id="promessaGroup">
         <label class="radio-pill" data-value="nao"><input type="radio" name="promessa" value="nao" checked /> Não</label>
@@ -139,21 +154,26 @@
           <textarea id="fObsPromessa" rows="2" placeholder="Observações sobre a promessa de pagamento"></textarea>
         </div>
       </div>
+      </div>
     </div>
 
-    <div class="panel form-section">
-      <div class="form-section-title">
-        <div class="num">5</div>
+    <div class="panel form-section accordion-section" data-section="5">
+      <button type="button" class="form-section-title accordion-toggle">
+        <span class="num">5</span>
         <h3>Equipamentos</h3>
-      </div>
+        <span class="accordion-check" data-check></span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="accordion-body">
       <div class="equip-list" id="equipList"></div>
       <button type="button" class="btn btn-outline btn-sm" id="btnAddEquip">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
         Adicionar equipamento
       </button>
+      </div>
     </div>
 
-    <div class="form-actions">
+    <div class="form-actions form-actions-sticky">
       <a href="clientes.html" class="btn btn-ghost">Cancelar</a>
       <button type="submit" class="btn btn-primary" id="btnSalvar">
         <span id="btnSalvarLabel">Salvar cliente</span>
