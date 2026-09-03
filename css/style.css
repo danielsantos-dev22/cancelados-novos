@@ -407,6 +407,32 @@ table.data-table tbody tr:hover { background: var(--color-gray-50); }
   display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 12.5px; font-weight: 700;
 }
 .form-section-title h3 { font-size: 15px; }
+
+/* Acordeão do formulário de cliente */
+.accordion-section { padding: 0; overflow: hidden; }
+.accordion-toggle {
+  width: 100%; background: none; border: none; cursor: pointer;
+  padding: 20px 22px; margin-bottom: 0; text-align: left; font: inherit;
+}
+.accordion-toggle h3 { flex: 1; }
+.accordion-chevron { color: var(--color-gray-400); flex-shrink: 0; transition: transform 0.2s ease; }
+.accordion-section.open .accordion-chevron { transform: rotate(180deg); color: var(--color-gray-600); }
+.accordion-check { display: none; width: 20px; height: 20px; border-radius: 50%; background: var(--color-green-bg); flex-shrink: 0; position: relative; }
+.accordion-check.done { display: block; }
+.accordion-check.done::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 5px; height: 9px;
+  border: solid var(--color-green); border-width: 0 2px 2px 0;
+  transform: translate(-65%, -60%) rotate(45deg);
+}
+.accordion-body { display: none; padding: 0 22px 22px; }
+.accordion-section.open .accordion-body { display: block; }
+.accordion-section.has-error { box-shadow: 0 0 0 1px var(--color-red); }
+.accordion-section.has-error .num { background: var(--color-red-bg); color: var(--color-red-dark); }
+
+.form-actions-sticky {
+  position: sticky; bottom: 0; background: var(--color-bg);
+  padding-top: 14px; margin-top: 6px; z-index: 5;
+}
 .radio-group { display: flex; gap: 10px; margin-bottom: 4px; }
 .radio-pill {
   flex: 1; border: 1.5px solid var(--color-gray-200); border-radius: var(--radius-sm); padding: 11px 14px;
