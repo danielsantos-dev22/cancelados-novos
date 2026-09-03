@@ -79,7 +79,53 @@ function wirePhoneFlags(inputId, semWhatsId, naoFuncId) {
   return sync;
 }
 
+function wireAccordion() {
+  const sections = document.querySelectorAll(".accordion-section");
+  sections.forEach((section) => {
+    const toggle = section.querySelector(".accordion-toggle");
+    toggle.addEventListener("click", () => {
+      const isOpen = section.classList.contains("open");
+      sections.forEach((s) => s.classList.remove("open"));
+      if (!isOpen) section.classList.add("open");
+    });
+  });
+  atualizarConclusaoSecoes();
+}
+
+function abrirSecao(numero) {
+  document.querySelectorAll(".accordion-section").forEach((s) => {
+    s.classList.toggle("open", s.dataset.section === String(numero));
+  });
+  document
+    .querySelector(`.accordion-section[data-section="${numero}"]`)
+    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+/** Marca com um "check" verde as seções cujos campos obrigatórios já estão preenchidos. */
+let checarSecao1 = () => {};
+
+function atualizarConclusaoSecoes() {
+  const marcar = (numero, ok) => {
+    const check = document.querySelector(`.accordion-section[data-section="${numero}"] [data-check]`);
+    if (check) check.classList.toggle("done", ok);
+  };
+
+  checarSecao1 = () => {
+    const ok =
+      document.getElementById("fNome").value.trim().length > 0 &&
+      document.getElementById("fCpf").value.trim().length > 0 &&
+      document.getElementById("fDataCancelamento").value.length > 0;
+    marcar(1, ok);
+  };
+  checarSecao1();
+
+  ["fNome", "fCpf", "fDataCancelamento", "fTelefone1", "fTelefone2", "fValor"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", checarSecao1);
+  });
+}
+
 function wireStaticUI() {
+  wireAccordion();
   attachCPFMask(document.getElementById("fCpf"));
   attachTelefoneMask(document.getElementById("fTelefone1"));
   attachTelefoneMask(document.getElementById("fTelefone2"));
@@ -220,6 +266,7 @@ async function carregarCliente(id) {
         adicionarEquipamento({ id: d.id, ...d.data() });
       });
     }
+    checarSecao1();
   } catch (err) {
     console.error(err);
     showToast("Erro ao carregar dados do cliente.", "error");
@@ -245,36 +292,43 @@ function setFieldError(inputId, errId, show) {
 
 function validarFormulario() {
   let valid = true;
+  let secaoComErro = null;
   const nome = document.getElementById("fNome").value.trim();
   const cpf = document.getElementById("fCpf").value.trim();
   const dataCancelamento = document.getElementById("fDataCancelamento").value;
 
   setFieldError("fNome", "errNome", nome.length < 3);
-  if (nome.length < 3) valid = false;
+  if (nome.length < 3) { valid = false; secaoComErro = secaoComErro || 1; }
 
   const cpfOk = isValidCPF(cpf);
   setFieldError("fCpf", "errCpf", !cpfOk);
-  if (!cpfOk) valid = false;
+  if (!cpfOk) { valid = false; secaoComErro = secaoComErro || 1; }
 
   const telefone1 = document.getElementById("fTelefone1").value.trim();
   const telefone1Digits = telefone1.replace(/\D/g, "");
   const telefone1Ok = telefone1Digits.length === 0 || telefone1Digits.length >= 10;
   setFieldError("fTelefone1", "errTelefone1", !telefone1Ok);
-  if (!telefone1Ok) valid = false;
+  if (!telefone1Ok) { valid = false; secaoComErro = secaoComErro || 1; }
 
   const telefone2 = document.getElementById("fTelefone2").value.trim();
   const telefone2Digits = telefone2.replace(/\D/g, "");
   const telefone2Ok = telefone2Digits.length === 0 || telefone2Digits.length >= 10;
   setFieldError("fTelefone2", "errTelefone2", !telefone2Ok);
-  if (!telefone2Ok) valid = false;
+  if (!telefone2Ok) { valid = false; secaoComErro = secaoComErro || 1; }
 
   setFieldError("fDataCancelamento", "errData", !dataCancelamento);
-  if (!dataCancelamento) valid = false;
+  if (!dataCancelamento) { valid = false; secaoComErro = secaoComErro || 1; }
 
   const prometeu = document.querySelector('input[name="promessa"]:checked').value === "sim";
   const dataPromessa = document.getElementById("fDataPromessa").value;
   setFieldError("fDataPromessa", "errDataPromessa", prometeu && !dataPromessa);
-  if (prometeu && !dataPromessa) valid = false;
+  if (prometeu && !dataPromessa) { valid = false; secaoComErro = secaoComErro || 4; }
+
+  document.querySelectorAll(".accordion-section").forEach((s) => s.classList.remove("has-error"));
+  if (secaoComErro) {
+    abrirSecao(secaoComErro);
+    document.querySelector(`.accordion-section[data-section="${secaoComErro}"]`)?.classList.add("has-error");
+  }
 
   return valid;
 }
