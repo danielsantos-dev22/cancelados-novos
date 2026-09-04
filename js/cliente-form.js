@@ -4,8 +4,8 @@
 import { db } from "./firebase-config.js";
 import { mountShell, requireAuth, currentUserInfo } from "./app-shell.js";
 import {
-  attachCPFMask,
-  isValidCPF,
+  attachCpfCnpjMask,
+  isValidCpfCnpj,
   attachTelefoneMask,
   attachMoedaMask,
   moedaParaNumero,
@@ -55,6 +55,17 @@ requireAuth((user) => {
 
 let syncTel1Flags = () => {};
 let syncTel2Flags = () => {};
+
+let syncObsValor = () => {};
+
+function wireObsValor() {
+  const valorInput = document.getElementById("fValor");
+  const bloco = document.getElementById("obsValorBlock");
+  const sync = () => bloco.classList.toggle("hidden", valorInput.value.trim().length === 0);
+  valorInput.addEventListener("input", sync);
+  sync();
+  return sync;
+}
 
 function wirePhoneFlags(inputId, semWhatsId, naoFuncId) {
   const input = document.getElementById(inputId);
@@ -119,19 +130,20 @@ function atualizarConclusaoSecoes() {
   };
   checarSecao1();
 
-  ["fNome", "fCpf", "fDataCancelamento", "fTelefone1", "fTelefone2", "fValor"].forEach((id) => {
+  ["fNome", "fCpf", "fDataCancelamento", "fEndereco", "fTelefone1", "fTelefone2", "fValor"].forEach((id) => {
     document.getElementById(id).addEventListener("input", checarSecao1);
   });
 }
 
 function wireStaticUI() {
   wireAccordion();
-  attachCPFMask(document.getElementById("fCpf"));
+  attachCpfCnpjMask(document.getElementById("fCpf"));
   attachTelefoneMask(document.getElementById("fTelefone1"));
   attachTelefoneMask(document.getElementById("fTelefone2"));
   syncTel1Flags = wirePhoneFlags("fTelefone1", "fTel1SemWhats", "fTel1NaoFunciona");
   syncTel2Flags = wirePhoneFlags("fTelefone2", "fTel2SemWhats", "fTel2NaoFunciona");
   attachMoedaMask(document.getElementById("fValor"));
+  syncObsValor = wireObsValor();
 
   wireRadioGroup("spcGroup", "spc", "spcCondicional");
   wireRadioGroup("devolucaoGroup", "devolucao", "devolucaoCondicional");
@@ -222,6 +234,7 @@ async function carregarCliente(id) {
 
     document.getElementById("fNome").value = c.nome || "";
     document.getElementById("fCpf").value = c.cpf || "";
+    document.getElementById("fEndereco").value = c.endereco || "";
     document.getElementById("fTelefone1").value = c.telefone1 || c.telefone || "";
     document.getElementById("fTelefone2").value = c.telefone2 || "";
     document.getElementById("fTel1SemWhats").checked = Boolean(c.telefone1SemWhatsapp);
@@ -235,6 +248,8 @@ async function carregarCliente(id) {
       c.valor !== undefined && c.valor !== null
         ? Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         : "";
+    document.getElementById("fObsValor").value = c.observacaoValor || "";
+    syncObsValor();
 
     const spcValue = c.spcSerasa ? "sim" : "nao";
     document.querySelector(`input[name="spc"][value="${spcValue}"]`).checked = true;
@@ -300,7 +315,7 @@ function validarFormulario() {
   setFieldError("fNome", "errNome", nome.length < 3);
   if (nome.length < 3) { valid = false; secaoComErro = secaoComErro || 1; }
 
-  const cpfOk = isValidCPF(cpf);
+  const cpfOk = isValidCpfCnpj(cpf);
   setFieldError("fCpf", "errCpf", !cpfOk);
   if (!cpfOk) { valid = false; secaoComErro = secaoComErro || 1; }
 
@@ -354,6 +369,7 @@ async function handleSubmit(e) {
   const payload = {
     nome,
     cpf: document.getElementById("fCpf").value.trim(),
+    endereco: document.getElementById("fEndereco").value.trim(),
     telefone1: document.getElementById("fTelefone1").value.trim(),
     telefone1SemWhatsapp: document.getElementById("fTel1SemWhats").checked,
     telefone1NaoFunciona: document.getElementById("fTel1NaoFunciona").checked,
@@ -361,6 +377,7 @@ async function handleSubmit(e) {
     telefone2SemWhatsapp: document.getElementById("fTel2SemWhats").checked,
     telefone2NaoFunciona: document.getElementById("fTel2NaoFunciona").checked,
     valor: moedaParaNumero(document.getElementById("fValor").value.trim()),
+    observacaoValor: document.getElementById("fValor").value.trim() ? document.getElementById("fObsValor").value.trim() : "",
     dataCancelamento: document.getElementById("fDataCancelamento").value,
     spcSerasa,
     dataSpcSerasa: spcSerasa ? document.getElementById("fDataSpc").value || null : null,
@@ -490,6 +507,7 @@ async function salvarEdicao(id, payload) {
     if (
       originalCliente.nome !== payload.nome ||
       originalCliente.cpf !== payload.cpf ||
+      (originalCliente.endereco || "") !== (payload.endereco || "") ||
       (originalCliente.telefone1 || originalCliente.telefone || "") !== (payload.telefone1 || "") ||
       (originalCliente.telefone2 || "") !== (payload.telefone2 || "") ||
       (originalCliente.valor ?? null) !== (payload.valor ?? null) ||
