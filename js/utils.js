@@ -221,6 +221,74 @@ function toJSDate(value) {
   return null;
 }
 
+/* ----------------------------- CPF/CNPJ ------------------------------------- */
+
+/** Aplica a máscara de CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00), detectando pela quantidade de dígitos. */
+export function maskCpfCnpj(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  return digits
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
+/** Anexa a um <input> a máscara de CPF/CNPJ em tempo real. */
+export function attachCpfCnpjMask(input) {
+  input.addEventListener("input", () => {
+    const pos = input.selectionStart;
+    const before = input.value.length;
+    input.value = maskCpfCnpj(input.value);
+    const after = input.value.length;
+    const diff = after - before;
+    if (pos !== null) input.setSelectionRange(pos + diff, pos + diff);
+  });
+}
+
+/** Valida CNPJ (algoritmo dos dígitos verificadores). */
+export function isValidCNPJ(cnpjRaw) {
+  const cnpj = String(cnpjRaw).replace(/\D/g, "");
+  if (cnpj.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(cnpj)) return false;
+
+  let tamanho = cnpj.length - 2;
+  let numeros = cnpj.substring(0, tamanho);
+  const digitos = cnpj.substring(tamanho);
+  let soma = 0;
+  let pos = tamanho - 7;
+  for (let i = tamanho; i >= 1; i--) {
+    soma += Number(numeros.charAt(tamanho - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+  if (resultado !== parseInt(digitos.charAt(0), 10)) return false;
+
+  tamanho += 1;
+  numeros = cnpj.substring(0, tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  for (let i = tamanho; i >= 1; i--) {
+    soma += Number(numeros.charAt(tamanho - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+  return resultado === parseInt(digitos.charAt(1), 10);
+}
+
+/** Valida CPF (11 dígitos) ou CNPJ (14 dígitos), detectando automaticamente pelo tamanho. */
+export function isValidCpfCnpj(valorRaw) {
+  const digits = String(valorRaw).replace(/\D/g, "");
+  if (digits.length === 11) return isValidCPF(digits);
+  if (digits.length === 14) return isValidCNPJ(digits);
+  return false;
+}
+
 /* ----------------------------- Texto / segurança ------------------------ */
 
 export function escapeHtml(str) {
@@ -231,6 +299,15 @@ export function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/** Remove acentos e normaliza para minúsculas, para permitir busca sem distinção de acentuação. */
+export function normalizarTexto(str) {
+  return String(str || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 export function getInitials(name) {
@@ -395,7 +472,8 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
 
   const linhas = clientes.map((c) => ({
     Nome: c.nome || "",
-    CPF: c.cpf || "",
+    "CPF/CNPJ": c.cpf || "",
+    Endereço: c.endereco || "",
     "Telefone 1": c.telefone1 || c.telefone || "",
     "Telefone 1 sem WhatsApp": c.telefone1 || c.telefone ? (c.telefone1SemWhatsapp ? "Sim" : "Não") : "",
     "Telefone 1 não funciona": c.telefone1 || c.telefone ? (c.telefone1NaoFunciona ? "Sim" : "Não") : "",
@@ -404,6 +482,7 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
     "Telefone 2 não funciona": c.telefone2 ? (c.telefone2NaoFunciona ? "Sim" : "Não") : "",
     "Data do cancelamento": formatDateBR(c.dataCancelamento),
     "Valor (R$)": c.valor !== undefined && c.valor !== null ? Number(c.valor) : "",
+    "Observação valor": c.observacaoValor || "",
     "SPC/SERASA": c.spcSerasa ? "Sim" : "Não",
     "Data inclusão SPC": c.spcSerasa ? formatDateBR(c.dataSpcSerasa) : "",
     "Observação SPC": c.observacaoSpc || "",
@@ -419,10 +498,10 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
 
   const worksheet = XLSX.utils.json_to_sheet(linhas);
   worksheet["!cols"] = [
-    { wch: 28 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 18 },
-    { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 14 },
-    { wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 30 },
-    { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 30 },
+    { wch: 28 }, { wch: 18 }, { wch: 32 }, { wch: 16 }, { wch: 18 },
+    { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 14 },
+    { wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 22 },
+    { wch: 16 }, { wch: 30 }, { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 30 },
   ];
 
   const workbook = XLSX.utils.book_new();
