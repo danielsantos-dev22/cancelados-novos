@@ -8,6 +8,7 @@ import {
   formatMoedaBR,
   calcularStatusPromessa,
   statusContato,
+  normalizarTexto,
   escapeHtml,
   debounce,
   confirmModal,
@@ -62,7 +63,7 @@ function init() {
   document.getElementById("searchInput").addEventListener(
     "input",
     debounce((e) => {
-      BUSCA_ATUAL = e.target.value.trim().toLowerCase();
+      BUSCA_ATUAL = normalizarTexto(e.target.value.trim());
       renderLista();
     }, 220)
   );
@@ -115,9 +116,9 @@ function aplicarFiltro(lista) {
   const agora = Date.now();
   return lista.filter((c) => {
     if (BUSCA_ATUAL) {
-      const nomeMatch = (c.nome || "").toLowerCase().includes(BUSCA_ATUAL);
-      const cpfMatch = (c.cpf || "").replace(/\D/g, "").includes(BUSCA_ATUAL.replace(/\D/g, ""));
+      const nomeMatch = normalizarTexto(c.nome).includes(BUSCA_ATUAL);
       const buscaDigits = BUSCA_ATUAL.replace(/\D/g, "");
+      const cpfMatch = buscaDigits.length > 0 && (c.cpf || "").replace(/\D/g, "").includes(buscaDigits);
       const telMatch =
         buscaDigits.length > 0 &&
         ((c.telefone1 || c.telefone || "").replace(/\D/g, "").includes(buscaDigits) ||
