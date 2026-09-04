@@ -99,6 +99,8 @@ function renderInfo(c) {
   document.querySelector("[data-status-badge]").innerHTML = statusBadgeHtml(c);
   document.querySelector("[data-nome]").textContent = c.nome || "—";
   document.querySelector("[data-cpf]").textContent = c.cpf || "—";
+  document.querySelector("[data-linha-endereco]").classList.toggle("hidden", !c.endereco);
+  document.querySelector("[data-endereco]").textContent = c.endereco || "—";
   document.querySelector("[data-telefone1]").innerHTML = renderTelefoneComTag(
     c.telefone1 || c.telefone,
     c.telefone1SemWhatsapp,
@@ -119,6 +121,8 @@ function renderInfo(c) {
   }
   document.querySelector("[data-cancelamento]").textContent = formatDateBR(c.dataCancelamento);
   document.querySelector("[data-valor]").textContent = formatMoedaBR(c.valor);
+  document.querySelector("[data-linha-obs-valor]").classList.toggle("hidden", !c.observacaoValor);
+  document.querySelector("[data-obs-valor]").textContent = c.observacaoValor || "—";
   document.querySelector("[data-spc]").innerHTML = c.spcSerasa
     ? '<span class="badge badge-red">Sim</span>'
     : '<span class="badge badge-gray">Não</span>';
