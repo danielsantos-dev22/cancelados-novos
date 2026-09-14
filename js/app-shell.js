@@ -99,9 +99,27 @@ export function mountShell(activeKey, pageTitle) {
     window.location.href = "index.html";
   });
 
+  mountFabNovoCliente();
+
   return {
     contentEl: document.getElementById("pageContent"),
   };
+}
+
+/** Adiciona um botão flutuante (+) de atalho para cadastrar um novo cliente, em todas as páginas exceto o próprio formulário. */
+function mountFabNovoCliente() {
+  if (document.getElementById("fabNovoCliente")) return;
+  if (window.location.pathname.endsWith("cliente-form.html")) return;
+
+  const fab = document.createElement("a");
+  fab.id = "fabNovoCliente";
+  fab.href = "cliente-form.html";
+  fab.className = "fab-add";
+  fab.setAttribute("aria-label", "Novo cliente");
+  fab.setAttribute("title", "Novo cliente");
+  fab.innerHTML =
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>';
+  document.body.appendChild(fab);
 }
 
 /** Preenche a saudação do usuário na topbar. */
