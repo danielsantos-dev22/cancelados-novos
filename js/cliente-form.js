@@ -130,7 +130,7 @@ function atualizarConclusaoSecoes() {
   };
   checarSecao1();
 
-  ["fNome", "fCpf", "fDataCancelamento", "fEndereco", "fTelefone1", "fTelefone2", "fValor"].forEach((id) => {
+  ["fNome", "fCpf", "fDataCancelamento", "fEndereco", "fDataDevendo", "fTelefone1", "fTelefone2", "fValor"].forEach((id) => {
     document.getElementById(id).addEventListener("input", checarSecao1);
   });
 }
@@ -244,6 +244,7 @@ async function carregarCliente(id) {
     syncTel1Flags();
     syncTel2Flags();
     document.getElementById("fDataCancelamento").value = toDateInputValue(c.dataCancelamento);
+    document.getElementById("fDataDevendo").value = toDateInputValue(c.dataDevendo);
     document.getElementById("fValor").value =
       c.valor !== undefined && c.valor !== null
         ? Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -379,6 +380,7 @@ async function handleSubmit(e) {
     valor: moedaParaNumero(document.getElementById("fValor").value.trim()),
     observacaoValor: document.getElementById("fValor").value.trim() ? document.getElementById("fObsValor").value.trim() : "",
     dataCancelamento: document.getElementById("fDataCancelamento").value,
+    dataDevendo: document.getElementById("fDataDevendo").value || null,
     spcSerasa,
     dataSpcSerasa: spcSerasa ? document.getElementById("fDataSpc").value || null : null,
     observacaoSpc: spcSerasa ? document.getElementById("fObsSpc").value.trim() : "",
@@ -508,6 +510,7 @@ async function salvarEdicao(id, payload) {
       originalCliente.nome !== payload.nome ||
       originalCliente.cpf !== payload.cpf ||
       (originalCliente.endereco || "") !== (payload.endereco || "") ||
+      toDateInputValue(originalCliente.dataDevendo) !== (payload.dataDevendo || "") ||
       (originalCliente.telefone1 || originalCliente.telefone || "") !== (payload.telefone1 || "") ||
       (originalCliente.telefone2 || "") !== (payload.telefone2 || "") ||
       (originalCliente.valor ?? null) !== (payload.valor ?? null) ||
