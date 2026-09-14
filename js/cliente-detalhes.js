@@ -8,6 +8,7 @@ import {
   formatDateTimeBR,
   formatMoedaBR,
   calcularStatusPromessa,
+  calcularStatusDebito,
   statusContato,
   escapeHtml,
   confirmModal,
@@ -120,6 +121,12 @@ function renderInfo(c) {
     document.querySelector("[data-contato]").innerHTML = `<span class="badge ${contato.badgeClass}">${escapeHtml(contato.label)}</span>`;
   }
   document.querySelector("[data-cancelamento]").textContent = formatDateBR(c.dataCancelamento);
+  const statusDebito = calcularStatusDebito(c);
+  document.querySelector("[data-linha-devendo]").classList.toggle("hidden", !c.dataDevendo);
+  if (statusDebito) {
+    document.querySelector("[data-devendo]").innerHTML =
+      `${formatDateBR(c.dataDevendo)} <span class="badge ${statusDebito.badgeClass}" style="margin-left:6px;">${escapeHtml(statusDebito.label)}</span>`;
+  }
   document.querySelector("[data-valor]").textContent = formatMoedaBR(c.valor);
   document.querySelector("[data-linha-obs-valor]").classList.toggle("hidden", !c.observacaoValor);
   document.querySelector("[data-obs-valor]").textContent = c.observacaoValor || "—";
