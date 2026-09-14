@@ -139,6 +139,25 @@ export function statusContato(c) {
   return null;
 }
 
+/**
+ * Calcula há quantos dias o cliente está devendo, a partir da data registrada.
+ * Retorna null se não há data de débito informada.
+ */
+export function calcularStatusDebito(c) {
+  if (!c || !c.dataDevendo) return null;
+  const hoje = hojeISO();
+  const inicio = new Date(`${c.dataDevendo}T00:00:00`);
+  const agora = new Date(`${hoje}T00:00:00`);
+  const dias = Math.max(0, Math.round((agora - inicio) / (1000 * 60 * 60 * 24)));
+
+  let badgeClass = "badge-gray";
+  if (dias >= 90) badgeClass = "badge-red";
+  else if (dias >= 30) badgeClass = "badge-amber";
+
+  const label = dias === 0 ? "Devendo desde hoje" : dias === 1 ? "Devendo há 1 dia" : `Devendo há ${dias} dias`;
+  return { label, dias, badgeClass };
+}
+
 /* ----------------------------- Promessa de pagamento ---------------------- */
 
 /** Retorna a data de hoje no formato 'YYYY-MM-DD', no fuso de Belém. */
@@ -481,6 +500,8 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
     "Telefone 2 sem WhatsApp": c.telefone2 ? (c.telefone2SemWhatsapp ? "Sim" : "Não") : "",
     "Telefone 2 não funciona": c.telefone2 ? (c.telefone2NaoFunciona ? "Sim" : "Não") : "",
     "Data do cancelamento": formatDateBR(c.dataCancelamento),
+    "Devendo desde": formatDateBR(c.dataDevendo),
+    "Dias devendo": c.dataDevendo ? calcularStatusDebito(c)?.dias ?? "" : "",
     "Valor (R$)": c.valor !== undefined && c.valor !== null ? Number(c.valor) : "",
     "Observação valor": c.observacaoValor || "",
     "SPC/SERASA": c.spcSerasa ? "Sim" : "Não",
@@ -500,8 +521,9 @@ export async function exportarClientesExcel(clientes, nomeArquivo = "clientes-ca
   worksheet["!cols"] = [
     { wch: 28 }, { wch: 18 }, { wch: 32 }, { wch: 16 }, { wch: 18 },
     { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 14 },
-    { wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 18 }, { wch: 30 }, { wch: 22 },
-    { wch: 16 }, { wch: 30 }, { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 30 },
+    { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 18 },
+    { wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 30 }, { wch: 18 }, { wch: 16 },
+    { wch: 18 }, { wch: 30 },
   ];
 
   const workbook = XLSX.utils.book_new();
