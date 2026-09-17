@@ -21,6 +21,8 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  query,
+  where,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
@@ -135,9 +137,36 @@ function atualizarConclusaoSecoes() {
   });
 }
 
+async function verificarClienteDuplicado() {
+  const aviso = document.getElementById("avisoCpfDuplicado");
+  const link = document.getElementById("linkClienteDuplicado");
+  const cpfValue = document.getElementById("fCpf").value.trim();
+
+  aviso.classList.add("hidden");
+  if (!isValidCpfCnpj(cpfValue)) return;
+
+  try {
+    const q = query(collection(db, "clientes_cancelados"), where("cpf", "==", cpfValue), where("ativo", "==", true));
+    const snap = await getDocs(q);
+    const duplicado = snap.docs.find((d) => d.id !== clienteId);
+    if (!duplicado) return;
+
+    const dados = duplicado.data();
+    link.href = `cliente-detalhes.html?id=${duplicado.id}`;
+    link.textContent = dados.nome || "ver cliente";
+    aviso.classList.remove("hidden");
+  } catch (err) {
+    console.error("Falha ao verificar duplicidade:", err);
+  }
+}
+
 function wireStaticUI() {
   wireAccordion();
   attachCpfCnpjMask(document.getElementById("fCpf"));
+  document.getElementById("fCpf").addEventListener("blur", verificarClienteDuplicado);
+  document.getElementById("fCpf").addEventListener("input", () => {
+    document.getElementById("avisoCpfDuplicado").classList.add("hidden");
+  });
   attachTelefoneMask(document.getElementById("fTelefone1"));
   attachTelefoneMask(document.getElementById("fTelefone2"));
   syncTel1Flags = wirePhoneFlags("fTelefone1", "fTel1SemWhats", "fTel1NaoFunciona");
