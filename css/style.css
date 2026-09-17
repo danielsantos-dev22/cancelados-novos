@@ -185,6 +185,19 @@ img, svg { display: block; }
 .btn-sm { padding: 8px 14px; font-size: 13px; }
 .btn-icon { padding: 9px; border-radius: var(--radius-sm); background: var(--color-gray-100); color: var(--color-gray-700); }
 .btn-icon:hover { background: var(--color-gray-200); }
+
+.name-with-copy { display: flex; align-items: center; gap: 6px; }
+.btn-copy-name {
+  padding: 3px; border-radius: 6px; background: transparent; color: var(--color-gray-400);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.btn-copy-name svg { width: 13px; height: 13px; }
+.btn-copy-name:hover { background: var(--color-gray-100); color: var(--color-primary); }
+.btn-copy-name.copied { color: var(--color-green); }
+
+tr[data-row-id] { cursor: pointer; }
+tr[data-row-id]:hover { background: var(--color-gray-50, #f7f9fc); }
+.client-card[data-row-id] { cursor: pointer; }
 .btn[disabled] { opacity: .6; pointer-events: none; }
 
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: var(--color-gray-500); font-size: 12.5px; }
