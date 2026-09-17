@@ -95,6 +95,15 @@ function renderInfo(c) {
     container.innerHTML = "";
     container.appendChild(tpl.content.cloneNode(true));
     document.getElementById("btnExcluirCliente").addEventListener("click", handleExcluir);
+    document.getElementById("btnCopiarNome")?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(nomeClienteAtual || "");
+        showToast(`Nome copiado: ${nomeClienteAtual}`, "success", 2200);
+      } catch (err) {
+        console.error(err);
+        showToast("Não foi possível copiar o nome.", "error");
+      }
+    });
   }
 
   document.querySelector("[data-status-badge]").innerHTML = statusBadgeHtml(c);
