@@ -200,6 +200,16 @@ function telefonesTexto(c) {
   return t1 || t2 || "—";
 }
 
+async function copiarNome(nome) {
+  try {
+    await navigator.clipboard.writeText(nome);
+    showToast(`Nome copiado: ${nome}`, "success", 2200);
+  } catch (err) {
+    console.error(err);
+    showToast("Não foi possível copiar o nome.", "error");
+  }
+}
+
 function debitoBadgeSpan(c) {
   const st = calcularStatusDebito(c);
   if (!st) return "";
@@ -253,9 +263,14 @@ function renderLista() {
   tbody.innerHTML = lista
     .map(
       (c) => `
-    <tr>
+    <tr data-row-id="${c.id}">
       <td class="cell-name">
-        <div>${escapeHtml(c.nome || "—")}</div>
+        <div class="name-with-copy">
+          <span>${escapeHtml(c.nome || "—")}</span>
+          <button type="button" class="btn-copy-name" data-copy-nome="${escapeHtml(c.nome || "")}" title="Copiar nome" aria-label="Copiar nome">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
         <div class="cpf-sub">${escapeHtml([c.cpf, c.telefone1 || c.telefone, c.telefone2].filter(Boolean).join(" · ") || "—")}</div>
         ${contatoBadge(c)}
         ${debitoBadgeSpan(c) ? `<div style="margin-top:5px;">${debitoBadgeSpan(c)}</div>` : ""}
@@ -285,10 +300,15 @@ function renderLista() {
   cardList.innerHTML = lista
     .map(
       (c) => `
-    <div class="client-card">
+    <div class="client-card" data-row-id="${c.id}">
       <div class="cc-head">
         <div>
-          <div class="cc-name">${escapeHtml(c.nome || "—")}</div>
+          <div class="cc-name name-with-copy">
+            <span>${escapeHtml(c.nome || "—")}</span>
+            <button type="button" class="btn-copy-name" data-copy-nome="${escapeHtml(c.nome || "")}" title="Copiar nome" aria-label="Copiar nome">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
           <div class="cc-cpf">${escapeHtml(c.cpf || "—")}</div>
         </div>
         ${statusBadge(c)}
@@ -312,6 +332,20 @@ function renderLista() {
 
   document.querySelectorAll("[data-del]").forEach((btn) => {
     btn.addEventListener("click", () => handleExcluir(btn.dataset.del, btn.dataset.nome));
+  });
+
+  document.querySelectorAll("[data-copy-nome]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      copiarNome(btn.dataset.copyNome);
+    });
+  });
+
+  document.querySelectorAll("[data-row-id]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (e.target.closest("a, button")) return;
+      window.location.href = `cliente-form.html?id=${el.dataset.rowId}`;
+    });
   });
 }
 
